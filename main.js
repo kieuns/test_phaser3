@@ -10,6 +10,7 @@
 // https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html (this.input)
 
 import {XY, xy_2_str} from './gametype.js';
+import { ResInfo } from "./res.js";
 
 //=============================================================================================================================================================
 // 전역(글로벌) 변수
@@ -67,26 +68,6 @@ var GameStat = function()
 
     GameStat.prototype = {
         sample_func() {}
-    }
-};
-
-
-var ResInfo =
-{
-    BoardViewSpec: {
-        tileXLen:9, tileYLen:9,
-        tilePixelWidth:70, tilePixelHeight:70
-    },
-    BasicSet: {
-        // (Title) :{ key:'bg-001', filename:'assets/background.jpg', displayWidth:00, displayHeight:00 },
-        bg:{ key:'bg-001', filename:'assets/background.jpg' },
-        tile_bg:{ key:'tile-bg-001', filename:'assets/block_glow.png' },
-        block_1: { key: 'block_blue', filename: 'assets/blue.png' },
-        block_2: { key: 'block_green', filename: 'assets/green.png' },
-        block_3: { key: 'block_orange', filename: 'assets/orange.png' },
-        block_4: { key: 'block_red', filename: 'assets/red.png' },
-        block_5: { key: 'block_violet', filename: 'assets/violet.png' },
-        block_6: { key: 'block_yellow', filename: 'assets/yellow.png' },
     }
 };
 
@@ -200,6 +181,9 @@ export default class GameMain extends Phaser.Scene
         console.log("GameMain:preload(): 終 ", this.time.now);
     }
 
+    _test()
+    {
+    }
 
     create()
     {
@@ -216,6 +200,8 @@ export default class GameMain extends Phaser.Scene
         this.img_bg.setDisplaySize(_scrn_w, _scrn_h);
 
         this.img_tilebg = this.add.image(0, 0, 'tile-bg-001');
+
+        this._test();
 
         // 스테이지 초기화
         this.stageView = new StageView();
@@ -244,18 +230,6 @@ class StageLogic
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// class ATileView
-// {
-//     constructor()
-//     {
-//         this.tileImgKey = ResInfo.BasicSet.bg.key;
-//         this.boardPos = undefined;
-//         this.screenPos = undefined;
-//         this.objBlock = undefined;
-//         this.jobTodo = undefined; // 이 타일에서 할일의 모음
-//     }
-// }
-
 /**
  * TileView 변수 형태로 저장
  * @class
@@ -267,16 +241,29 @@ var ATileView = new Phaser.Class({
     function ATileView(scene)
     {
         this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
-
         Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
         this.setAlpha(0.1, 0,5, 0.5, 0.1);
-
         this.boardPos = undefined;
         this.screenPos = undefined;
         this.objBlock = undefined;
         this.jobTodo = undefined; // 이 타일에서 할일의 모음
     }
 });
+// function ATileView(scene) {}
+// ATileView.prototype = Phaser.GameObjects.Image;
+// ATileView.prototype.init = function(scene)
+// {
+//     this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
+//     Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
+//     this.setAlpha(0.1, 0,5, 0.5, 0.1);
+//     this.boardPos = undefined;
+//     this.screenPos = undefined;
+//     this.objBlock = undefined;
+//     this.jobTodo = undefined; // 이 타일에서 할일의 모음
+// }
+// ATileView.prototype.test_func = function() {
+//     console.log('ATileView.test()');
+// }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
