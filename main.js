@@ -70,10 +70,8 @@ var GameStat = function()
     }
 };
 
-/** 게임의 실행 규칙을 저장해두는 곳. 옵션과는 좀 다르지.. */
-var GameRule = {}
 
-var GameRes =
+var ResInfo =
 {
     BoardViewSpec: {
         tileXLen:9, tileYLen:9,
@@ -92,6 +90,7 @@ var GameRes =
     }
 };
 
+
 //=============================================================================================================================================================
 // 메인 함수 - 코드의 시작점
 //=============================================================================================================================================================
@@ -100,8 +99,8 @@ function preload_global()
 {
     console.log("= preload_global(): start");
 
-    // if (Phaser.Plugin.Debug != undefined) {
-    //   game.plugins.add(Phaser.Plugin.Debug);
+    // if(Phaser.Plugin.Debug != undefined) {
+    //     game.plugins.add(Phaser.Plugin.Debug);
     // }
     // 디버그 UI 만들기
     // if (GameOption.USE_DBGUI) {
@@ -186,7 +185,7 @@ export default class GameMain extends Phaser.Scene
         // this.load.image('bg-001', 'assets/background.jpg');
         // this.load.image('tile-bg-001', 'assets/block_glow.png');
 
-        let basic_set = GameRes.BasicSet;
+        let basic_set = ResInfo.BasicSet;
         //console.log(basic_set);
         for(let key_str in basic_set)
         {
@@ -234,7 +233,7 @@ class StageLogic
 {
     constructor()
     {
-        this.boardSize = new XY(GameRes.BoardViewSpec.xSize, GameRes.BoardViewSpec.ySize);
+        this.boardSize = new XY(ResInfo.BoardViewSpec.xSize, ResInfo.BoardViewSpec.ySize);
     }
 
     /** @param {number} dt delta-time */
@@ -245,17 +244,34 @@ class StageLogic
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class ATileView
-{
-    constructor()
+// class ATileView
+// {
+//     constructor()
+//     {
+//         this.tileImgKey = ResInfo.BasicSet.bg.key;
+//         this.boardPos = undefined;
+//         this.screenPos = undefined;
+//         this.objBlock = undefined;
+//         this.jobTodo = undefined; // 이 타일에서 할일의 모음
+//     }
+// }
+
+//@ts-ignore
+var ATileView = new Phaser.Class({
+    Extends: Phaser.GameObjects.Image,
+    initialize:
+    function ATileView(scene)
     {
-        this.tileImgKey = GameRes.BasicSet.bg.key;
+        Phaser.GameObjects.Image.call(this, scene, 0, 0, ResInfo.BasicSet.tile_bg.key);
+
+        this.tileImgKey = ResInfo.BasicSet.bg.key;
         this.boardPos = undefined;
         this.screenPos = undefined;
         this.objBlock = undefined;
         this.jobTodo = undefined; // 이 타일에서 할일의 모음
     }
-}
+});
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -269,6 +285,9 @@ class StageView
         this.pivotPos = undefined;
         this.tilePixelSize = undefined;
         this.boardLeftTopWPos = undefined;
+
+        this.tileImgArr = undefined;
+        this.tileImgGroup = undefined;
     }
 
     init()
@@ -285,6 +304,10 @@ class StageView
         this.pivotPos = new XY();
         this.boardLeftTopWPos = new XY();
         this.tilePixelSize = new XY();
+
+        this.tileImgArr = [];
+        //this.tileImgGroup = GameMain.instance.add.group({defaultKey: 'tile-bg-001', maxSize:81});
+        this.tileImgGroup = GameMain.instance.add.group({classType: ATileView, maxSize:81});
     }
 
     initView()
@@ -292,14 +315,14 @@ class StageView
         this.pivotPos.x = GameOption.ScreenWidth / 2;
         this.pivotPos.y = GameOption.ScreenHeight / 2;
 
-        this.boardXYLen.x = GameRes.BoardViewSpec.tileXLen;
-        this.boardXYLen.y = GameRes.BoardViewSpec.tileYLen;
+        this.boardXYLen.x = ResInfo.BoardViewSpec.tileXLen;
+        this.boardXYLen.y = ResInfo.BoardViewSpec.tileYLen;
 
-        this.tilePixelSize.x = GameRes.BoardViewSpec.tilePixelWidth;
-        this.tilePixelSize.y = GameRes.BoardViewSpec.tilePixelHeight;
+        this.tilePixelSize.x = ResInfo.BoardViewSpec.tilePixelWidth;
+        this.tilePixelSize.y = ResInfo.BoardViewSpec.tilePixelHeight;
 
-        this.boardPixelSize.x = GameRes.BoardViewSpec.tilePixelWidth * this.boardXYLen.x;
-        this.boardPixelSize.y = GameRes.BoardViewSpec.tilePixelHeight * this.boardXYLen.y;
+        this.boardPixelSize.x = ResInfo.BoardViewSpec.tilePixelWidth * this.boardXYLen.x;
+        this.boardPixelSize.y = ResInfo.BoardViewSpec.tilePixelHeight * this.boardXYLen.y;
 
         let tile_pixel_halfsize = new XY(this.boardPixelSize.x / 2, this.boardPixelSize.y / 2);
 
@@ -308,8 +331,8 @@ class StageView
         console.log('this.boardPixelSize > ', this.boardPixelSize);
         console.log('tile_pixel_halfsize > ', tile_pixel_halfsize);
 
-        this.boardLeftTopWPos.x = this.pivotPos.x - tile_pixel_halfsize.x;
-        this.boardLeftTopWPos.y = this.pivotPos.y - tile_pixel_halfsize.y;
+        this.boardLeftTopWPos.x = this.pivotPos.x - tile_pixel_halfsize.x + (this.tilePixelSize.x/2);
+        this.boardLeftTopWPos.y = this.pivotPos.y - tile_pixel_halfsize.y + (this.tilePixelSize.y/2);
 
         console.log('this.boardLeftTopWPos > ', this.boardLeftTopWPos);
     }
@@ -318,17 +341,27 @@ class StageView
     {
         //GameMain.instance.add.image(this.boardLeftTopWPos.x, this.boardLeftTopWPos.y, 'tile-bg-001');
 
-        let xpos = this.boardLeftTopWPos.x;
-        for(let xi = 0; xi < this.boardXYLen.x; xi++)
+        let ypos = this.boardLeftTopWPos.y;
+        for(let yi = 0; yi < this.boardXYLen.y; yi++)
         {
-            let ypos = this.boardLeftTopWPos.y;
-            for(let yi = 0; yi < this.boardXYLen.y; yi++)
+            let xpos = this.boardLeftTopWPos.x;
+            for(let xi = 0; xi < this.boardXYLen.x; xi++)
             {
-                //GameMain.instance.add.image(xpos, ypos, 'tile-bg-001');
-                //console.log(xy_2_str(xpos, ypos));
-                ypos += this.tilePixelSize.y;
+                let new_tile_img = this.tileImgGroup.get(xpos, ypos);
+                if(new_tile_img)
+                {
+                    new_tile_img.x = xpos;
+                    new_tile_img.y = ypos;
+                    this.tileImgArr.push(new_tile_img);
+                    //GameMain.instance.add.image(xpos, ypos, 'tile-bg-001');
+                    //console.log(xy_2_str(xpos, ypos));
+                }
+                else {
+                    console.warn('no new tile');
+                }
+                xpos += this.tilePixelSize.x;
             }
-            xpos += this.tilePixelSize.x;
+            ypos += this.tilePixelSize.y;
         }
     }
 }
