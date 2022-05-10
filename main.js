@@ -9,7 +9,9 @@
 // 입력 이벤트 : https://photonstorm.github.io/phaser3-docs/Phaser.Input.Events.html
 // https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html (this.input)
 
-import {XY, xy_2_str} from './gametype.js';
+import BlastScene from './BlastScene.js';
+import CurveTestScene from './CurveTestScene.js';
+import { XY, xy_2_str } from './gametype.js';
 import { ResInfo } from "./res.js";
 
 //=============================================================================================================================================================
@@ -17,21 +19,21 @@ import { ResInfo } from "./res.js";
 //=============================================================================================================================================================
 
 /** phaser.game 오브젝트 저장용 */
-var game;
+export var game;
 
 /** 게임 옵션에 해당하는 파라미터를 모아 두는 곳 */
-var GameOption =
+export var GameOption =
 {
     ScreenWidth: 720, // 720
     ScreenHeight: 1280, // 1280,
-    BkgndColor: '#eeeeee', // 0x08131a,
+    BkgndColor: '#111', // 0x08131a,
     LocalStorageName: "app_game_220506",
     DeltaTime: 0,
-    DevMode: null,
+    DevMode: undefined,
 };
 
 /** 게임에서 쓰는 상수값을 모아 두는 곳 */
-var GameConst =
+export var GameConst =
 {
     /** 트윈모션 시간, 기본 */
     TweenTime_Default: 180,
@@ -42,15 +44,15 @@ var GameConst =
 };
 
 /** 게임에서 쓰는 글로벌 데이터를 저장하기 위한 곳 */
-var GameData =
+export var GameData =
 {
     /** GameStat의 인스턴스 */
-    stat: null,
+    stat: undefined,
 };
 
 
 /** 게임 내 애널리틱스 정보 저장용. 내부에 함수도 갖고 있어야 해서 클래스로 선언. */
-var GameStat = function()
+export var GameStat = function()
 {
     // -- 세션동안 유지할것 --
     // 시간 값은 game.time.now를 사용하기 때문에 일반 시간이 아니라 0부터 시작하는 ms 시간 인 경우가 있는데,
@@ -91,8 +93,9 @@ function preload_global()
     //   }
     // }
 
-    game.scene.add('main', GameMain);
-    game.scene.start("main");
+    game.scene.add('blast_scene', BlastScene);
+    game.scene.add('curve_test_scene', CurveTestScene);
+    game.scene.start('curve_test_scene');
     console.log("= preload_global(): done");
 }
 
@@ -124,237 +127,9 @@ function main()
     console.log("main(): done. next move is preload()");
 }
 
-//=============================================================================================================================================================
-// main() 고
-//=============================================================================================================================================================
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** main */
 main();
 
-//=============================================================================================================================================================
-// GameMain class - 리소스 로딩하고 끝. GameMain 으로 넘어감
-//=============================================================================================================================================================
 
-export default class GameMain extends Phaser.Scene
-{
-    static instance = undefined;
-
-    constructor()
-    {
-        super('main');
-
-        GameMain.instance = this; // todo: 현재 켜진 페이져 씬을 얻는 방법은?
-
-        this.loading_pv = 0; // 로딩 시간을 저장하는 임시 변수. 이전 항목의 로딩 시간 저장용.
-        this.img_bg = null;
-        /** 테스트용 볼 이미지 */
-        this.img_ball = null;
-        //this.mov_assist = null;
-        console.log("GameMain:constructor(): done");
-    }
-
-
-    preload()
-    {
-        GameData.stat.gtimeAppLoadingStart = this.time.now;
-        console.log("GameMain:preload(): 初");
-        console.log.apply(console,
-            ["%c %c= GameMain.preload() load start: %c %d ms", 'color: #ffffff; background: #d44a52',
-            'color: #fff; background: #000', 'color: #000; background: #ffffff',
-            GameData.stat.gtimeAppLoadingStart]);
-
-        // this.load.image('bg-001', 'assets/background.jpg');
-        // this.load.image('tile-bg-001', 'assets/block_glow.png');
-
-        let basic_set = ResInfo.BasicSet;
-        //console.log(basic_set);
-        for(let key_str in basic_set)
-        {
-            console.log(key_str);
-            let value = basic_set[key_str];
-            //this.load.image('bg-001', 'assets/background.jpg');
-            this.load.image(value.key, value.filename);
-        }
-
-        //this.load.image('tile-bg-001', 'assets/block_glow.png');
-
-        console.log("GameMain:preload(): 終 ", this.time.now);
-    }
-
-    _test()
-    {
-    }
-
-    create()
-    {
-        {
-            console.log("GameMain:create(): ", this.cameras.main.width, ", ", this.cameras.main.height);
-            console.log("  this.cameras.main.width & height: ", this.cameras.main.width, ", ", this.cameras.main.height);
-        }
-
-        let _scrn_w = this.cameras.main.width;
-        let _scrn_h = this.cameras.main.height;
-
-        // 배경 이미지를 화면 크기만큼 늘린다.
-        this.img_bg = this.add.image(_scrn_w/2, _scrn_h/2, 'bg-001');
-        this.img_bg.setDisplaySize(_scrn_w, _scrn_h);
-
-        this.img_tilebg = this.add.image(0, 0, 'tile-bg-001');
-
-        this._test();
-
-        // 스테이지 초기화
-        this.stageView = new StageView();
-        this.stageView.init();
-    }
-
-    update(time, delta)
-    {
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class StageLogic
-{
-    constructor()
-    {
-        this.boardSize = new XY(ResInfo.BoardViewSpec.xSize, ResInfo.BoardViewSpec.ySize);
-    }
-
-    /** @param {number} dt delta-time */
-    onUpdate(dt)
-    {
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * TileView 변수 형태로 저장
- * @class
- * @arguments Phaser.GameObjects.Image
- */
-var ATileView = new Phaser.Class({
-    Extends: Phaser.GameObjects.Image,
-    initialize:
-    function ATileView(scene)
-    {
-        this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
-        Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
-        this.setAlpha(0.1, 0,5, 0.5, 0.1);
-        this.boardPos = undefined;
-        this.screenPos = undefined;
-        this.objBlock = undefined;
-        this.jobTodo = undefined; // 이 타일에서 할일의 모음
-    }
-});
-// function ATileView(scene) {}
-// ATileView.prototype = Phaser.GameObjects.Image;
-// ATileView.prototype.init = function(scene)
-// {
-//     this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
-//     Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
-//     this.setAlpha(0.1, 0,5, 0.5, 0.1);
-//     this.boardPos = undefined;
-//     this.screenPos = undefined;
-//     this.objBlock = undefined;
-//     this.jobTodo = undefined; // 이 타일에서 할일의 모음
-// }
-// ATileView.prototype.test_func = function() {
-//     console.log('ATileView.test()');
-// }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-class StageView
-{
-    constructor()
-    {
-        this.stageLogic = undefined;
-        this.boardPixelSize = undefined;
-        this.boardXYLen = undefined;
-        this.pivotPos = undefined;
-        this.tilePixelSize = undefined;
-        this.boardLeftTopWPos = undefined;
-
-        this.tileImgArr = undefined;
-        this.tileImgGroup = undefined;
-    }
-
-    init()
-    {
-        this.initViewParams();
-        this.initView();
-        this.makeView();
-    }
-
-    initViewParams()
-    {
-        this.boardPixelSize = new XY();
-        this.boardXYLen = new XY();
-        this.pivotPos = new XY();
-        this.boardLeftTopWPos = new XY();
-        this.tilePixelSize = new XY();
-
-        this.tileImgArr = [];
-        //this.tileImgGroup = GameMain.instance.add.group({defaultKey: 'tile-bg-001', maxSize:81});
-        this.tileImgGroup = GameMain.instance.add.group({classType: ATileView, maxSize:81});
-    }
-
-    initView()
-    {
-        this.pivotPos.x = GameOption.ScreenWidth / 2;
-        this.pivotPos.y = GameOption.ScreenHeight / 2;
-
-        this.boardXYLen.x = ResInfo.BoardViewSpec.tileXLen;
-        this.boardXYLen.y = ResInfo.BoardViewSpec.tileYLen;
-
-        this.tilePixelSize.x = ResInfo.BoardViewSpec.tilePixelWidth;
-        this.tilePixelSize.y = ResInfo.BoardViewSpec.tilePixelHeight;
-
-        this.boardPixelSize.x = ResInfo.BoardViewSpec.tilePixelWidth * this.boardXYLen.x;
-        this.boardPixelSize.y = ResInfo.BoardViewSpec.tilePixelHeight * this.boardXYLen.y;
-
-        let tile_pixel_halfsize = new XY(this.boardPixelSize.x / 2, this.boardPixelSize.y / 2);
-
-        console.log('this.pivotPos > ', this.pivotPos);
-        console.log('this.boardXYLen > ', this.boardXYLen);
-        console.log('this.boardPixelSize > ', this.boardPixelSize);
-        console.log('tile_pixel_halfsize > ', tile_pixel_halfsize);
-
-        this.boardLeftTopWPos.x = this.pivotPos.x - tile_pixel_halfsize.x + (this.tilePixelSize.x/2);
-        this.boardLeftTopWPos.y = this.pivotPos.y - tile_pixel_halfsize.y + (this.tilePixelSize.y/2);
-
-        console.log('this.boardLeftTopWPos > ', this.boardLeftTopWPos);
-    }
-
-    makeView()
-    {
-        //GameMain.instance.add.image(this.boardLeftTopWPos.x, this.boardLeftTopWPos.y, 'tile-bg-001');
-
-        let ypos = this.boardLeftTopWPos.y;
-        for(let yi = 0; yi < this.boardXYLen.y; yi++)
-        {
-            let xpos = this.boardLeftTopWPos.x;
-            for(let xi = 0; xi < this.boardXYLen.x; xi++)
-            {
-                let new_tile_img = this.tileImgGroup.get(xpos, ypos);
-                if(new_tile_img)
-                {
-                    new_tile_img.x = xpos;
-                    new_tile_img.y = ypos;
-                    this.tileImgArr.push(new_tile_img);
-                    //GameMain.instance.add.image(xpos, ypos, 'tile-bg-001');
-                    //console.log(xy_2_str(xpos, ypos));
-                }
-                else {
-                    console.warn('no new tile');
-                }
-                xpos += this.tilePixelSize.x;
-            }
-            ypos += this.tilePixelSize.y;
-        }
-    }
-}
