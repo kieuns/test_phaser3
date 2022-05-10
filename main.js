@@ -256,15 +256,21 @@ class StageLogic
 //     }
 // }
 
-//@ts-ignore
+/**
+ * TileView 변수 형태로 저장
+ * @class
+ * @arguments Phaser.GameObjects.Image
+ */
 var ATileView = new Phaser.Class({
     Extends: Phaser.GameObjects.Image,
     initialize:
     function ATileView(scene)
     {
-        Phaser.GameObjects.Image.call(this, scene, 0, 0, ResInfo.BasicSet.tile_bg.key);
+        this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
 
-        this.tileImgKey = ResInfo.BasicSet.bg.key;
+        Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
+        this.setAlpha(0.1, 0,5, 0.5, 0.1);
+
         this.boardPos = undefined;
         this.screenPos = undefined;
         this.objBlock = undefined;
