@@ -95,7 +95,11 @@ function preload_global()
 
     game.scene.add('blast_scene', BlastScene);
     game.scene.add('curve_test_scene', CurveTestScene);
-    game.scene.start('curve_test_scene');
+    let start_scene_name = 'blast_scene';
+    if(argvStartSceneName) {
+        start_scene_name = argvStartSceneName;
+    }
+    game.scene.start(start_scene_name);
     console.log("= preload_global(): done");
 }
 
