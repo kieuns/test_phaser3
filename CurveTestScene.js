@@ -7,6 +7,17 @@ import { ResInfo } from "./res.js";
 // example
 // - geom : http://phaser.io/examples/v3/category/geom
 
+// https://phaser.io/examples/v3/view/game-objects/graphics/obj-scene
+
+// 입력
+// - InputManager : https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html
+// - setInteractive : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.GameObject.html#setInteractive__anchor
+// example
+// - https://phaser.io/examples/v3/view/game-objects/dom-element/input-test
+// - https://phaser.io/examples/v3/category/input
+// - game-objects/dom-element/InputTest
+// - https://phaser.io/examples/v3/search?search=input
+
 /*
 // ex1
 graphics.lineStyle(5, 0xFF00FF, 1.0);
@@ -20,6 +31,11 @@ graphics.lineStyle(5, 0xFF00FF, 1.0);
 graphics.fillStyle(0xFFFFFF, 1.0);
 graphics.fillRect(50, 50, 400, 200);
 graphics.strokeRect(50, 50, 400, 200);
+
+// 입력처리
+var sprite = this.add.sprite(x, y, texture);
+sprite.setInteractive();
+sprite.on('pointerdown', callback, context);
 */
 
 export default class CurveTestScene extends Phaser.Scene
@@ -45,6 +61,7 @@ export default class CurveTestScene extends Phaser.Scene
 
     preload()
     {
+        this.load.image('click_box', './assets/16x16.png');
     }
 
     create()
@@ -61,6 +78,8 @@ export default class CurveTestScene extends Phaser.Scene
             { fillStyle:{color:0xff00ff, size:10, alpha:1.0 }, to:{x:100, y:200 } },
         ];
         this.dotObjArr = [];
+
+        this.add.image(100, 100, 'click_box').setInteractive({ draggable: true });
     }
 
     getLine()
@@ -116,6 +135,12 @@ export default class CurveTestScene extends Phaser.Scene
 
             this.graphics.fillStyle(spec.fillStyle.color, spec.fillStyle.alpha);
             this.graphics.fillPointShape(dot, spec.fillStyle.size);
+
+            //dot.setInteractive();
+            // dot.input.on('pointermove', function(pointer) {
+            //     dot.x = pointer.x;
+            //     dot.y = pointer.y;
+            // });
         }
     }
 };
