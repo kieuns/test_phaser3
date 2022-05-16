@@ -13,6 +13,7 @@ import BlastScene from './BlastScene.js';
 import CurveTestScene from './CurveTestScene.js';
 import { XY, xy_2_str } from './gametype.js';
 import { ResInfo } from "./res.js";
+import TestAny from './TestAny.js';
 
 //=============================================================================================================================================================
 // 전역(글로벌) 변수
@@ -93,10 +94,14 @@ function preload_global()
     //   }
     // }
 
-    game.scene.add('blast_scene', BlastScene);
-    game.scene.add('curve_test_scene', CurveTestScene);
+    game.scene.add('BlastScene', BlastScene);
+    game.scene.add('CurveTestScene', CurveTestScene);
+    game.scene.add('TestAny', TestAny);
+
     let start_scene_name = 'blast_scene';
+    //@ts-ignore
     if(argvStartSceneName) {
+        //@ts-ignore
         start_scene_name = argvStartSceneName;
     }
     game.scene.start(start_scene_name);
