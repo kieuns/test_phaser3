@@ -30,4 +30,9 @@ function xy_2_str(x, y)
     return '(' + x + ',' + y + ')';
 }
 
+// function get_func_name() {
+//     return get_func_name.caller.name
+// }
+
+
 export {XY, xy_2_str};

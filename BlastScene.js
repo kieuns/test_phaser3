@@ -14,7 +14,7 @@ export default class BlastScene extends Phaser.Scene
 
     constructor()
     {
-        super('blast_scene');
+        super('BlastScene');
 
         BlastScene.instance = this; // todo: 현재 켜진 페이져 씬을 얻는 방법은?
 
@@ -115,6 +115,7 @@ var ATileView = new Phaser.Class({
     {
         this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
         Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
+        // @ts-ignore
         this.setAlpha(0.1, 0,5, 0.5, 0.1);
         this.boardPos = undefined;
         this.screenPos = undefined;

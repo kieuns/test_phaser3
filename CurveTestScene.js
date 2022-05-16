@@ -28,7 +28,7 @@ export default class CurveTestScene extends Phaser.Scene
 
     constructor()
     {
-        super('curve_test_scene');
+        super('CurveTestScene');
         CurveTestScene.instance = this;
 
         this.graphics = undefined;
@@ -40,6 +40,7 @@ export default class CurveTestScene extends Phaser.Scene
         this.dotDataArr = undefined;
         this.dotObjIndex = 0;
         this.dotObjArr = undefined;
+        console.log(this.constructor.name, ': done');
     }
 
     preload()
