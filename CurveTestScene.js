@@ -79,7 +79,15 @@ export default class CurveTestScene extends Phaser.Scene
         ];
         this.dotObjArr = [];
 
-        this.add.image(100, 100, 'click_box').setInteractive({ draggable: true });
+        let img1 = this.add.image(100, 100, 'click_box');
+        img1.setInteractive();
+        this.input.setDraggable(img1);
+
+        this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+            gameObject.x = dragX;
+            gameObject.y = dragY;
+        });
+
     }
 
     getLine()
@@ -144,3 +152,4 @@ export default class CurveTestScene extends Phaser.Scene
         }
     }
 };
+
