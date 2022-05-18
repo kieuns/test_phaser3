@@ -52,7 +52,15 @@ class ObjectMover
     {
     }
 
-    move(fromPos, toPos)
+    setMovParam(fromPos, toPos)
+    {
+    }
+
+    start()
+    {
+    }
+
+    onMove()
     {
     }
 }
@@ -67,17 +75,19 @@ export default class TickTest extends Phaser.Scene
 
         TickTest.instance = this;
         this.tickHandler = new TickHandler();
+        this.objMov1 = new ObjectMover();
         console.log(this.constructor.name, ': done');
     }
 
     preload()
     {
+        this.load.image('missile', './assets/rocket.png');
         console.log(this.constructor.name, ': preload : done');
-        this.tickHandler.start();
     }
 
     create()
     {
+        this.objMov1.initWith(this.add.image(0, 0, 'missile'));
     }
 
     update(time, delta)
