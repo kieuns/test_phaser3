@@ -14,6 +14,7 @@ import CurveTestScene from './CurveTestScene.js';
 import { XY, xy_2_str } from './gametype.js';
 import { ResInfo } from "./res.js";
 import TestAny from './TestAny.js';
+import TickTest from './TickTest.js';
 
 //=============================================================================================================================================================
 // 전역(글로벌) 변수
@@ -97,8 +98,9 @@ function preload_global()
     game.scene.add('BlastScene', BlastScene);
     game.scene.add('CurveTestScene', CurveTestScene);
     game.scene.add('TestAny', TestAny);
+    game.scene.add('TickTest', TickTest);
 
-    let start_scene_name = 'blast_scene';
+    let start_scene_name = 'BlastScene';
     //@ts-ignore
     if(argvStartSceneName) {
         //@ts-ignore

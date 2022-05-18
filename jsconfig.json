@@ -2,7 +2,7 @@
     "compilerOptions": {
         "module": "es6",
         "target": "es6",
-        "checkJs": false
+        "checkJs": true
     },
     "exclude": [
         "_ignore",
