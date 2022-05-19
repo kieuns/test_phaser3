@@ -188,3 +188,5 @@ function update (time, delta)
 ```
 
 ``` javascript ```
+
+# 입력
