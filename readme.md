@@ -189,4 +189,60 @@ function update (time, delta)
 
 ``` javascript ```
 
+``` javascript
+```
+
 # 입력
+
+씬에서 입력을 받기
+
+create() 함수에서 this.input.on() 으로 이벤트 함수 설정
+
+``` javascript
+this.input.on('gameout', function () { console.log('gameout'); });
+this.input.on('gameover', function () { console.log('gameover'); });
+```
+
+GameObject 에서 입력 받기
+
+  * GameObject.setInteractive()
+
+```
+var shape = new Phaser.Geom.Ellipse(33, 67, 66, 133);
+sprite.setInteractive(shape, Phaser.Geom.Ellipse.Contains);
+```
+
+마우스포인터 사용
+
+``` javascript
+function update() {
+    var pointer = this.input.activePointer;
+    text.setText([
+        'x: ' + pointer.worldX,
+        'y: ' + pointer.worldY,
+        'isDown: ' + pointer.isDown,
+        'rightButtonDown: ' + pointer.rightButtonDown()
+    ]);
+}
+```
+
+입력 이벤트
+  * pointerdown / pointerout / pointerup / pointermove
+
+```
+// this : Phaser.Scene
+this.input.on('pointerdown', function (pointer) { this.add.image(pointer.x, pointer.y, 'logo'); });
+```
+
+```(GameObject).on('pointerdown', function (pointer) { this.add.image(pointer.x, pointer.y, 'logo'); });```
+
+  * pointerover / pointerout
+
+
+  * pointerup
+
+  * gameout / gameover
+
+  * gameobjectdown
+
+```this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visible = false; });```

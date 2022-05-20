@@ -76,6 +76,9 @@ export default class TickTest extends Phaser.Scene
         TickTest.instance = this;
         this.tickHandler = new TickHandler();
         this.objMov1 = new ObjectMover();
+
+        this.mouseDown = false;
+
         console.log(this.constructor.name, ': done');
     }
 
@@ -88,10 +91,33 @@ export default class TickTest extends Phaser.Scene
     create()
     {
         this.objMov1.initWith(this.add.image(0, 0, 'missile'));
+        this.input.on('pointerdown', this.onPointerDown);
+        this.input.on('pointerup', this.onPointerUp);
+        this.input.on('gameout', this.onPointerUp); // canvas out
+        this.input.on('pointermove', this.onPointerMove);
     }
 
     update(time, delta)
     {
+    }
+
+    onPointerDown(pointer)
+    {
+        this.mouseDown = true;
+        console.log('onPointerDown');
+    }
+
+    onPointerUp(pointer)
+    {
+        this.mouseDown = false;
+        console.log('onPointerUp');
+    }
+
+    onPointerMove(pointer)
+    {
+        if(this.mouseDown) {
+            console.log('onPointerMove');
+        }
     }
 };
 
