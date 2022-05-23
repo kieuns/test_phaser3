@@ -226,18 +226,27 @@ function update() {
 }
 ```
 
+입력 이벤트 응답 함수의 파라미터
+
+  * ```Phaser.Input. Pointer```
+  * 입력의 응답 함수의 파라미터 레퍼런스 : [Phaser.Input.Pointer.html](https://photonstorm.github.io/phaser3-docs/Phaser.Input.Pointer.html)
+  * 살아 있는 입력 이벤트는, ```InputPlugin.activePointer``` 로 접근 가능
+  * 또는 ```InputPlugin.pointer1``` 에서 ```pointer10``` 의 변수로 접근 가능
+
 입력 이벤트
+
   * pointerdown / pointerout / pointerup / pointermove
 
-```
+``` javascript
 // this : Phaser.Scene
 this.input.on('pointerdown', function (pointer) { this.add.image(pointer.x, pointer.y, 'logo'); });
 ```
 
-```(GameObject).on('pointerdown', function (pointer) { this.add.image(pointer.x, pointer.y, 'logo'); });```
+```
+(GameObject).on('pointerdown', function (pointer) { this.add.image(pointer.x, pointer.y, 'logo'); });
+```
 
   * pointerover / pointerout
-
 
   * pointerup
 
@@ -245,11 +254,13 @@ this.input.on('pointerdown', function (pointer) { this.add.image(pointer.x, poin
 
   * gameobjectdown
 
-```this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visible = false; });```
+```
+this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visible = false; });
+```
 
 
 
-dom 엘리먼트 사용
+# dom 엘리먼트 사용
 
   * https://photonstorm.github.io/phaser3-docs/Phaser.DOM.html
 
@@ -269,7 +280,7 @@ dom 엘리먼트 사용
 
 ```
 
-**create()**함수에서 임의 버튼 **BULMA**를 사용해서 추가
+**create()** 함수에서 임의 버튼 **BULMA** 를 사용해서 추가
 
 ``` javascript
 create()
@@ -282,7 +293,7 @@ create()
 }
 ```
 
-jsx-dom : 하드코딩을 피하는 길
+## jsx-dom : 하드코딩을 피하는 길
 
 * https://blog.ourcade.co/posts/2020/dom-element-button-phaser-3-typescript-rxjs-jsx/
 * 리액트 엘리먼트
