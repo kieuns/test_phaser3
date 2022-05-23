@@ -128,11 +128,17 @@
       let cx = this.cameras.main.width / 2;
       let cy = this.cameras.main.height / 2;
       this.add.image(cx,cy,'box');
+
+      const button = document.createElement('div');
+      button.className = 'button is-primary';
+      button.innerText = 'CLICK';
+      this.add.dom(cx-100, cy-100, button);
     }
   }
 
   const config = {
-    type: Phaser.WEBGL,
+    type: Phaser.AUTO,
+    dom: { createContainer: true }, // 페이져에서 돔 엘리먼트 사용하게 하기
     parent: 'game_main',
     width: 600,
     height: 800,

@@ -246,3 +246,50 @@ this.input.on('pointerdown', function (pointer) { this.add.image(pointer.x, poin
   * gameobjectdown
 
 ```this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visible = false; });```
+
+
+
+dom 엘리먼트 사용
+
+  * https://photonstorm.github.io/phaser3-docs/Phaser.DOM.html
+
+```new Phaser.Game(config)```에 들어갈 설정 내용 중에 돔 컨테이너 사용을 **true** 로 설정
+
+``` javascript
+  const config = {
+    type: Phaser.AUTO,
+    dom: { createContainer: true }, // 페이져에서 돔 엘리먼트 사용하게 하기
+    parent: 'game_main',
+    width: 600,
+    height: 800,
+    backgroundColor: '#2d2d2d',
+    scene: [TestScene]
+  };
+  const game = new Phaser.Game(config);
+
+```
+
+**create()**함수에서 임의 버튼 **BULMA**를 사용해서 추가
+
+``` javascript
+create()
+{
+  // <button class="button is-primary">CLICK</button>
+  const button = document.createElement('div');
+  button.className = 'button is-primary';
+  button.innerText = 'CLICK';
+  this.add.dom(cx-100, cy-100, button);
+}
+```
+
+jsx-dom : 하드코딩을 피하는 길
+
+* https://blog.ourcade.co/posts/2020/dom-element-button-phaser-3-typescript-rxjs-jsx/
+* 리액트 엘리먼트
+* jsx-dom 을 임포트
+
+html을 그대로 사용해서 오브젝트 생성해서 갖다 쓰기
+
+```
+const button =
+```
