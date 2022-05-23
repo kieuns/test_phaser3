@@ -4,12 +4,12 @@ import { ResInfo } from "./res.js";
 
 class TickHandler
 {
+    #tickDur = 1000;
+    #tickTimerId = undefined;
+    #tickCount = 0;
+
     constructor()
     {
-        this.tickDur = 1000;
-        this.tickTimerId = undefined;
-
-        this.tickCount = 0;
     }
 
     start()
@@ -41,12 +41,9 @@ class TickHandler
 
 class ObjectMover
 {
-    constructor()
-    {
-        this.sprite = undefined;
-        this.fromPos = undefined;
-        this.toPos = undefined;
-    }
+    #sprite = undefined;
+    #fromPos = undefined;
+    #toPos = undefined;
 
     initWith(spriteObj)
     {
@@ -65,6 +62,61 @@ class ObjectMover
     }
 }
 
+class SimpleLine
+{
+    #startPos = new Phaser.Math.Vector2(-100, -100);
+    #endWPos = new Phaser.Math.Vector2(-100, -100);
+
+    setStartPosition(x, y)
+    {
+        this.startWPos.set(x,y);
+        this.endWPos.set(x,y);
+    }
+
+    setEndPosition(x, y)
+    {
+        this.endWPos.set(x,y);
+    }
+
+    cancel() {
+        this.startWPos.set(-100, -100);
+        this.endWPos.set(-100, -100);
+    }
+
+    updateEndPosition(x, y)
+    {
+        this.endWPos.x = x;
+        this.endWPos.y = y;
+    }
+
+}
+
+class clickedLine
+{
+    _simpleLine = new SimpleLine();
+    _scene = null;
+
+    constructor(scene)
+    {
+        this._scene = scene;
+    }
+
+    firstClick(x, y)
+    {
+        this._simpleLine.setStartPosition(x,y);
+    }
+
+    updateEndPosition(x, y)
+    {
+        this.updateEndPosition(x, y);
+    }
+
+    close()
+    {
+        this.setEndPosition();
+    }
+}
+
 export default class TickTest extends Phaser.Scene
 {
     static instance = undefined;
@@ -74,10 +126,13 @@ export default class TickTest extends Phaser.Scene
         super('TickTest');
 
         TickTest.instance = this;
+
         this.tickHandler = new TickHandler();
         this.objMov1 = new ObjectMover();
 
         this.mouseDown = false;
+
+        this.clickedLine = null;
 
         console.log(this.constructor.name, ': done');
     }
