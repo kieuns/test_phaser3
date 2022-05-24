@@ -1,10 +1,16 @@
 {
-	"name": "phaser3-parcel-template",
+	"name": "phaser3_test_using_phaser3-parcel-template",
 	"version": "1.0.0",
 	"description": "A template project for Phaser 3 using Parceljs",
 	"scripts": {
-		"start": "parcel src/index.html -p 8000",
-		"bulma_test": "parcel src/bulma_test.html -p 8000",
+		"t_bulma": "parcel src/bulma_test.html -p 8000",
+		"t_main": "parcel src/main.html -p 8000",
+		"t_curve": "parcel src/curve_test.html -p 8000",
+		"t_testany": "parcel src/test_any.html -p 8000",
+		"t_tickplay": "parcel src/tick_test.html -p 8000",
+		"start": "parcel src/index.html -p 8000"
+	},
+	"scripts.bak": {
 		"build": "parcel build src/index.html --out-dir dist",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},

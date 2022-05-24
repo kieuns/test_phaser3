@@ -144,3 +144,28 @@ Change 8000 to whatever you want.
 ## License
 
 [MIT License](https://github.com/ourcade/phaser3-parcel-template/blob/master/LICENSE)
+
+## Extra Install : Dat.gui
+
+  * https://www.npmjs.com/package/dat.gui
+
+```
+<script type="text/javascript" src="dat.gui.min.js"></script>
+```
+
+or
+
+```
+$ npm install --save dat.gui
+```
+
+how to use (from web)
+
+``` javascript
+// CommonJS:
+const dat = require('dat.gui');
+
+// ES6:
+import * as dat from 'dat.gui';
+const gui = new dat.GUI();
+```
