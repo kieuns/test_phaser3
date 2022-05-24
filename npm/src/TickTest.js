@@ -181,6 +181,8 @@ export class TickTest extends Phaser.Scene
 
     create()
     {
+        this.input.mouse.disableContextMenu();
+
         this._objMov1.initWith(this.add.image(0, 0, 'missile'));
 
         this.input.on('pointerdown', this.onPointerDown.bind(this));
@@ -200,27 +202,48 @@ export class TickTest extends Phaser.Scene
         this._clickLineArr.forEach((item, index, array) => item.onDraw(this.graphics, delta) );
     }
 
-    onPointerDown(pointer)
-    {
-        this._mouseDown = true;
-        //console.log('onPointerDown', pointer);
-        this._clickedLine = new ClickedLine(this, pointer.x, pointer.y);
-    }
-
-    onPointerUp(pointer)
+    cancelInputCapture()
     {
         this._mouseDown = false;
-        //console.log('onPointerUp', pointer);
-        if(this._clickedLine) {
-            this._clickedLine.close();
-            this._clickLineArr.push(this._clickedLine);
-            this._clickedLine = null;
+        this._clickedLine = null;
+    }
+
+    /** @param {Phaser.Input.Pointer} pointer */
+    onPointerDown(pointer)
+    {
+        if(pointer.leftButtonDown())
+        {
+            this._mouseDown = true;
+            //console.log('onPointerDown', pointer);
+            this._clickedLine = new ClickedLine(this, pointer.x, pointer.y);
+        }
+        else if(this._mouseDown)
+        {
+            if(pointer.rightButtonDown()) {
+                this.cancelInputCapture();
+            }
         }
     }
 
+    /** @param {Phaser.Input.Pointer} pointer */
+    onPointerUp(pointer)
+    {
+        if(pointer.leftButtonReleased())
+        {
+            this._mouseDown = false;
+            //console.log('onPointerUp', pointer);
+            if(this._clickedLine) {
+                this._clickedLine.close();
+                this._clickLineArr.push(this._clickedLine);
+                this._clickedLine = null;
+            }
+        }
+    }
+
+    /** @param {Phaser.Input.Pointer} pointer */
     onPointerMove(pointer)
     {
-        if(this._mouseDown)
+        if(this._mouseDown && pointer.leftButtonDown())
         {
             //console.log('onPointerMove', pointer);
             if(this._clickedLine) {

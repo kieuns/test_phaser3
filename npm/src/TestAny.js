@@ -29,6 +29,8 @@ export class TestAny extends Phaser.Scene
 
     create()
     {
+        this.input.mouse.disableContextMenu();
+
         this.add.image(100, 100, 'box');
         const source = this.textures.get('box').source[0].image;
 

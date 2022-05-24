@@ -123,7 +123,7 @@ function main()
     {
         width: GameOption.ScreenWidth,
         height: GameOption.ScreenHeight,
-        type: Phaser.WEBGL,
+        type: Phaser.AUTO,
         backgroundColor: GameOption.BkgndColor,
         scale: {
             autoCenter: Phaser.Scale.CENTER_BOTH,

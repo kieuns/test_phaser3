@@ -258,7 +258,11 @@ this.input.on('pointerdown', function (pointer) { this.add.image(pointer.x, poin
 this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visible = false; });
 ```
 
+## 입력에 쓸 코드들
 
+우클릭 컨텍스트메뉴 막기
+```this.input.mouse.disableContextMenu();```
+* https://phaser.io/examples/v3/view/input/mouse/right-mouse-button
 
 # dom 엘리먼트 사용
 
