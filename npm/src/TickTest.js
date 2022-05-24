@@ -211,16 +211,36 @@ export class TickTest extends Phaser.Scene
     /** @param {Phaser.Input.Pointer} pointer */
     onPointerDown(pointer)
     {
-        if(pointer.leftButtonDown())
+        if(!pointer.active) return;
+        let lbtn_down = pointer.leftButtonDown();
+        let rbtn_down = pointer.rightButtonDown();
+
+        if(!this._mouseDown && lbtn_down && !rbtn_down)
         {
             this._mouseDown = true;
             //console.log('onPointerDown', pointer);
             this._clickedLine = new ClickedLine(this, pointer.x, pointer.y);
         }
-        else if(this._mouseDown)
+        else if(this._mouseDown && rbtn_down)
         {
-            if(pointer.rightButtonDown()) {
+            this.cancelInputCapture();
+        }
+    }
+
+    /** @param {Phaser.Input.Pointer} pointer */
+    onPointerMove(pointer)
+    {
+        if(!pointer.active) {
+            if(this._clickedLine) {
                 this.cancelInputCapture();
+            }
+            return;
+        }
+        if(this._mouseDown && pointer.leftButtonDown())
+        {
+            //console.log('onPointerMove', pointer);
+            if(this._clickedLine) {
+                this._clickedLine.updateEndPosition(pointer.x, pointer.y);
             }
         }
     }
@@ -228,7 +248,15 @@ export class TickTest extends Phaser.Scene
     /** @param {Phaser.Input.Pointer} pointer */
     onPointerUp(pointer)
     {
-        if(pointer.leftButtonReleased())
+        if(!pointer.active) {
+            if(this._clickedLine || this._mouseDown) {
+                this.cancelInputCapture();
+            }
+            return;
+        }
+        let lbtn_up = pointer.leftButtonReleased();
+
+        if(this._mouseDown && lbtn_up)
         {
             this._mouseDown = false;
             //console.log('onPointerUp', pointer);
@@ -240,17 +268,6 @@ export class TickTest extends Phaser.Scene
         }
     }
 
-    /** @param {Phaser.Input.Pointer} pointer */
-    onPointerMove(pointer)
-    {
-        if(this._mouseDown && pointer.leftButtonDown())
-        {
-            //console.log('onPointerMove', pointer);
-            if(this._clickedLine) {
-                this._clickedLine.updateEndPosition(pointer.x, pointer.y);
-            }
-        }
-    }
 }
 
 

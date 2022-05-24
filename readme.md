@@ -264,6 +264,10 @@ this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visi
 ```this.input.mouse.disableContextMenu();```
 * https://phaser.io/examples/v3/view/input/mouse/right-mouse-button
 
+## 입력 잠그기
+
+* https://phaser.io/examples/v3/view/input/mouse/pointer-lock
+
 # dom 엘리먼트 사용
 
   * https://photonstorm.github.io/phaser3-docs/Phaser.DOM.html
