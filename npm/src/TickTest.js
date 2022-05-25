@@ -1,43 +1,99 @@
 /* eslint-disable no-unused-vars */
 
-import Phaser from 'phaser'
+import Phaser, { Time } from 'phaser'
 
 ////
 
-class TickHandler
+class TickPlay
 {
-    #tickDur = 1000;
-    #tickTimerId = undefined;
-    #tickCount = 0;
+    /** @type {number} */
+    _tickNowIndex = 0;
+
+    /** @type {number} */
+    _tickMaxPerSec = 10;
+
+    /** @type {number} 게임이 끝나는 틱 */
+    _tickCleared = -1;
+
+    /** @type {number} 게임이 끝나는 시간 */
+    _expectEndTime = 0;
+
+    _tickTimerId = null;
+
+    _loopStarted = false;
+
+    /** _workTodo:{time:number, func:()=>{}} [] = null;
+     * @type {array} */
+    _workTodo = null;
 
     constructor()
     {
     }
 
-    start()
+    getNowTick() { return this._tickNowIndex; }
+    getNowAsTime() { return this._tickNowIndex * this._tickMaxPerSec; }
+
+    /** @param {number} expectEndTime sec */
+    start(expectEndTime)
     {
-        this.tickCount = 0;
-        this.tickTimerId = setInterval(this.onTick.bind(this), this.#tickDur);
-        console.log(this.tickCount);
+        this._expectEndTime = this._tickMaxPerSec * (expectEndTime ? expectEndTime : (12*60));
+        this._tickNowIndex = 0;
+        this._workTodo = [];
+        this._tickTimerId = setInterval( this.onTick.bind(this), 1000 / this._tickMaxPerSec );
+        this._loopStarted = true;
+        console.log('TickPlay : start');
     }
 
     stop()
     {
-        clearInterval(this.tickTimerId);
+        clearInterval(this._tickTimerId);
     }
 
     onTick()
     {
-        this.tickCount += 1;
-        console.log('onTick() : ', this.tickCount);
+        this._tickNowIndex += 1;
+        //console.log('TickPlay : onTick() : ', this._tickNowIndex, ', work count: ', this._workTodo.length);
+
+        for(let i = 0; i < this._workTodo.length; i++) {
+            let item = this._workTodo[i];
+            if(item.tick > this._tickNowIndex) { break; }
+            if(item.tick <= this._tickNowIndex) {
+                item.delete = true;
+                item.func();
+            }
+        }
+
+        let tmp_ar = [];
+        for(let i = 0; i < this._workTodo.length; i++) {
+            let item = this._workTodo[i];
+            if(item.delete === false) {
+                tmp_ar.push(item);
+            }
+        }
+        this._workTodo = tmp_ar;
     }
 
-    reserve()
+    /**
+     * @param {number} time - 예약 시간, 정확한 시간 명시 ms
+     * @param {function} callback - 호출 함수
+     */
+    reserveTo(time, callback)
     {
+        if(!this._loopStarted) { console.log('TickPlay : not started'); }
+        let nx_tick = Math.floor(time*this._tickMaxPerSec);
+        this._workTodo.push({ tick:nx_tick, func:callback, delete:false });
     }
 
-    register()
+    /**
+     * @param {number} time - 예약 시간, 지금에서 얼마 뒤. ms
+     * @param {function} callback - 호출 함수
+     */
+    reserveBy(time, callback)
     {
+        if(!this._loopStarted) { console.log('TickPlay : not started'); }
+        let nx_tick = this._tickNowIndex+Math.floor(time*this._tickMaxPerSec);
+        console.log('tickplay : now: ', this._tickNowIndex, ' expect at : ', nx_tick);
+        this._workTodo.push({tick: nx_tick, func:callback, delete:false});
     }
 }
 
@@ -154,9 +210,13 @@ export class TickTest extends Phaser.Scene
 {
     static instance = undefined;
 
-    _tickHandler = null;
+    /** @type {TickPlay} */
+    _tickPlay = null;
+
+    /** @type {ObjectMover} */
     _objMov1 = null;
 
+    /** @type {array} */
     _clickLineArr = null;
 
     constructor()
@@ -172,7 +232,7 @@ export class TickTest extends Phaser.Scene
     {
         this.load.image('missile', './assets/rocket.png');
 
-        this._tickHandler = new TickHandler();
+        this._tickPlay = new TickPlay();
         this._objMov1 = new ObjectMover();
         this._clickLineArr = [];
 
@@ -191,6 +251,8 @@ export class TickTest extends Phaser.Scene
         this.input.on('pointermove', this.onPointerMove.bind(this));
 
         this.graphics = this.add.graphics();
+        // @ts-ignore
+        this._tickPlay.start();
     }
 
     update(time, delta)
@@ -263,7 +325,17 @@ export class TickTest extends Phaser.Scene
             if(this._clickedLine) {
                 this._clickedLine.close();
                 this._clickLineArr.push(this._clickedLine);
+                let tm_line = this._clickedLine;
                 this._clickedLine = null;
+
+                this._tickPlay.reserveBy(0.1, (() => {
+                    console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime());
+                    let idx = this._clickLineArr.findIndex((v, i, a) => v === tm_line);
+                    if(idx !== -1) {
+                        this._clickLineArr.splice(idx, 1);
+                        console.log('_clickLineArr : count : ', this._clickLineArr.length);
+                    }
+                }).bind(this));
             }
         }
     }

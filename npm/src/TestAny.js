@@ -6,9 +6,6 @@ import Phaser from 'phaser'
 // example
 // -
 
-/*
-*/
-
 export class TestAny extends Phaser.Scene
 {
     static instance = undefined;
@@ -93,4 +90,4 @@ export class TestAny extends Phaser.Scene
         }
     }
 
-};
+}
