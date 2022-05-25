@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 
+// @ts-ignore
 import Phaser, { Time } from 'phaser'
 
 ////
@@ -26,12 +27,11 @@ class TickPlay
      * @type {array} */
     _workTodo = null;
 
-    constructor()
-    {
-    }
 
     getNowTick() { return this._tickNowIndex; }
+
     getNowAsTime() { return this._tickNowIndex * this._tickMaxPerSec; }
+
 
     /** @param {number} expectEndTime sec */
     start(expectEndTime)
@@ -79,7 +79,7 @@ class TickPlay
      */
     reserveTo(time, callback)
     {
-        if(!this._loopStarted) { console.log('TickPlay : not started'); }
+        if(!this._loopStarted) { console.warn('TickPlay : not started'); return; }
         let nx_tick = Math.floor(time*this._tickMaxPerSec);
         this._workTodo.push({ tick:nx_tick, func:callback, delete:false });
     }
@@ -87,13 +87,25 @@ class TickPlay
     /**
      * @param {number} time - 예약 시간, 지금에서 얼마 뒤. ms
      * @param {function} callback - 호출 함수
+     * @param {number} repeatCnt
      */
-    reserveBy(time, callback)
+    reserveBy(time, callback, repeatCnt)
     {
-        if(!this._loopStarted) { console.log('TickPlay : not started'); }
-        let nx_tick = this._tickNowIndex+Math.floor(time*this._tickMaxPerSec);
-        console.log('tickplay : now: ', this._tickNowIndex, ' expect at : ', nx_tick);
-        this._workTodo.push({tick: nx_tick, func:callback, delete:false});
+        if(!this._loopStarted) { console.warn('TickPlay : not started'); return; }
+
+        let loop_cnt = repeatCnt ? repeatCnt : 1;
+        let repeat_time = time;
+
+        for(let i = 0; i < loop_cnt; i++)
+        {
+            let nx_tick = this._tickNowIndex+Math.ceil(time*this._tickMaxPerSec);
+
+            console.log('tickplay : now: ', this._tickNowIndex, ' expect at : ', nx_tick, ', time:', time.toFixed(4));
+
+            this._workTodo.push({tick: nx_tick, func:callback, delete:false});
+
+            time += repeat_time;
+        }
     }
 }
 
@@ -102,15 +114,27 @@ class TickPlay
 class ObjectMover
 {
     #sprite = undefined;
+    // @ts-ignore
     #fromPos = undefined;
+    // @ts-ignore
     #toPos = undefined;
 
+    getSprite() { return this.#sprite; }
+
+    /** @param {Phaser.GameObjects.Image} spriteObj */
     initWith(spriteObj)
     {
+        this.#sprite = spriteObj;
     }
 
+    /**
+     * @param {Phaser.Math.Vector2} fromPos
+     * @param {Phaser.Math.Vector2} toPos
+     */
     setMovParam(fromPos, toPos)
     {
+        this.#fromPos = fromPos;
+        this.#toPos = toPos;
     }
 
     start()
@@ -181,8 +205,6 @@ class ClickedLine
     {
         this._simpleLine.setStartPosition(x,y);
         this._lineGeom = new Phaser.Geom.Line(x, y, x, y);
-        // this._lineGeom.x1 = x;
-        // this._lineGeom.y1 = y;
     }
 
     updateEndPosition(x, y)
@@ -197,6 +219,7 @@ class ClickedLine
         this._simpleLine.setEndPosition();
     }
 
+    // @ts-ignore
     onDraw(graphic, dt)
     {
         graphic.lineStyle(this._lineStyle.fillStyle.size, this._lineStyle.fillStyle.color, this._lineStyle.fillStyle.alpha);
@@ -215,9 +238,14 @@ export class TickTest extends Phaser.Scene
 
     /** @type {ObjectMover} */
     _objMov1 = null;
+    /** @type {ObjectMover} */
+    _objMov2 = null;
 
     /** @type {array} */
     _clickLineArr = null;
+
+    /** @type {Phaser.GameObjects.Image} */
+    //_spr1 = null;
 
     constructor()
     {
@@ -231,11 +259,8 @@ export class TickTest extends Phaser.Scene
     preload()
     {
         this.load.image('missile', './assets/rocket.png');
-
         this._tickPlay = new TickPlay();
-        this._objMov1 = new ObjectMover();
         this._clickLineArr = [];
-
         console.log(this.constructor.name, ': preload : done');
     }
 
@@ -243,7 +268,21 @@ export class TickTest extends Phaser.Scene
     {
         this.input.mouse.disableContextMenu();
 
-        this._objMov1.initWith(this.add.image(0, 0, 'missile'));
+        // @ts-ignore
+        this._tickPlay.start();
+
+        this._objMov1 = new ObjectMover();
+        this._objMov1.initWith(this.add.image(100, 100, 'missile'));
+
+        this._objMov2 = new ObjectMover();
+        this._objMov2.initWith(this.add.image(150, 150, 'missile'));
+
+        //this._spr1 = this.add.image(150, 150, 'missile');
+
+        // @ts-ignore
+        this._tickPlay.reserveBy(0.1, () => {
+            this._objMov2.getSprite().angle = this._objMov2.getSprite().angle + 5;
+        }, 10);
 
         this.input.on('pointerdown', this.onPointerDown.bind(this));
         this.input.on('pointerup', this.onPointerUp.bind(this));
@@ -251,16 +290,16 @@ export class TickTest extends Phaser.Scene
         this.input.on('pointermove', this.onPointerMove.bind(this));
 
         this.graphics = this.add.graphics();
-        // @ts-ignore
-        this._tickPlay.start();
     }
 
+    // @ts-ignore
     update(time, delta)
     {
         this.graphics.clear();
         if(this._clickedLine) {
             this._clickedLine.onDraw(this.graphics, delta);
         }
+        // @ts-ignore
         this._clickLineArr.forEach((item, index, array) => item.onDraw(this.graphics, delta) );
     }
 
@@ -328,8 +367,10 @@ export class TickTest extends Phaser.Scene
                 let tm_line = this._clickedLine;
                 this._clickedLine = null;
 
-                this._tickPlay.reserveBy(0.1, (() => {
+                // @ts-ignore
+                this._tickPlay.reserveBy(5, (() => {
                     console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime());
+                    // @ts-ignore
                     let idx = this._clickLineArr.findIndex((v, i, a) => v === tm_line);
                     if(idx !== -1) {
                         this._clickLineArr.splice(idx, 1);
