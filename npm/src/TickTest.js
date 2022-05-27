@@ -148,6 +148,9 @@ class ObjectMover
     /** @type {number} 0~1 사이의 퍼센트. 현재 이동한 %는? */
     _movingProgress = 0;
 
+    /** @type {function} [_callWhenFinish] - 움직임 끝났을때 호출할 함수, 형식은 > () => {} */
+    _callWhenFinish = null;
+
     /** @returns {Phaser.GameObjects.Image} */
     spriteGet()
     {
@@ -192,8 +195,9 @@ class ObjectMover
      * @param {number} sy
      * @param {number} dx
      * @param {number} dy
+     * @param {function} [func] - 움직임 끝났을때 호출할 함수, 형식은 > () => {}
      */
-    moveSet(sx, sy, dx, dy, speed, moveStart = false)
+    moveSet(sx, sy, dx, dy, speed, moveStart, func)
     {
         this._posFrom.set(sx, sy);
         this._posTo.set(dx, dy);
@@ -208,6 +212,10 @@ class ObjectMover
         if(moveStart) {
             this._moveStart = true;
         }
+
+        if(func) {
+            this._callWhenFinish = func;
+        }
     }
 
     /**
@@ -215,22 +223,28 @@ class ObjectMover
      * @param {Phaser.Math.Vector2} [v2e]
      * @param {number} [speed]
      * @param {boolean} [moveStart]
+     * @param {function} [func] - 움직임 끝났을때 호출할 함수, 형식은 > () => {}
      */
-    moveSet2(v2s, v2e, speed, moveStart = false)
+    moveSet2(v2s, v2e, speed, moveStart, func)
     {
-        this.moveSet(v2s.x, v2s.y, v2e.x, v2e.y, speed, moveStart);
+        this.moveSet(v2s.x, v2s.y, v2e.x, v2e.y, speed, moveStart, func);
     }
 
     /** @param {number} dt - unit:sec */
     onMove(dt)
     {
         if(!this._moveStart) { return; }
+
         let moved_dir = this._posTo.clone().subtract(this._posFrom).normalize();
+
+
+
         this._movingProgress += (this._movePercentUnit * dt);
         this._movingProgress = Math.min(1, this._movingProgress);
-        moved_dir.scale(this._movingProgress);
-        this._posCurrent.set(this._posFrom.x + (this._moveDistance * moved_dir.x), this._posFrom.y + (this._moveDistance * moved_dir.y));
 
+        moved_dir.scale(this._movingProgress);
+
+        this._posCurrent.set(this._posFrom.x + (this._moveDistance * moved_dir.x), this._posFrom.y + (this._moveDistance * moved_dir.y));
         this._sprite.setPosition(this._posCurrent.x, this._posCurrent.y);
 
         if(GameOption.log_detail()) {
@@ -245,7 +259,9 @@ class ObjectMover
         if(this._movingProgress >= 1)
         {
             this._moveStart = false;
-            console.log('landed');
+            if(this._callWhenFinish) {
+                this._callWhenFinish();
+            }
         }
     }
 
@@ -462,7 +478,7 @@ export class TickTest extends Phaser.Scene
         // @ts-ignore
         this._clickLineArr.forEach((item, index, array) => item.onDraw(this.graphics, delta) );
 
-        this._objMov1.rotationAdd(2 * (delta/1000));
+        this._objMov1.rotationAdd(2 * ((delta/1000)));
         this._objMov2.onMove(delta);
     }
 
@@ -540,7 +556,7 @@ export class TickTest extends Phaser.Scene
                 this._clickedLine = null;
 
                 this._objMov2.rotationSet(tm_line.rotationGet());
-                this._objMov2.moveSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true);
+                this._objMov2.moveSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true, () => { console.log('landed'); });
 
                 this._tickPlay.reserveBy(5, (() => {
                     if(GameOption.log_detail()) { console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime()); }
