@@ -109,6 +109,8 @@ this.input.on('gameobjectover', function (pointer, gameObject) {}
 this.input.on('gameobjectout', function (pointer, gameObject) {}
 ```
 
+
+
 ## 멀티플 드래깅
 
 ``` javascript
@@ -116,11 +118,14 @@ this.input.on('gameobjectout', function (pointer, gameObject) {}
 this.input.topOnly = false;
 ```
 
+
 # GameObject
 
   * setTint() / clearTint()
 
   * Phaser.Actions.Rotate( 오브젝트들, 각도인듯 드그리인가? )
+
+
 
 # 멀티카메라
 
@@ -128,6 +133,8 @@ this.input.topOnly = false;
 this.cameras.add(...)
 // this는 Phaser.Scene
 ```
+
+
 
 # 카메라
 
@@ -154,9 +161,13 @@ function update (time, delta)
 }
 ```
 
+
+
 # 그래픽스
 
 텍스쳐를 만들수 있음 : ```graphics.generateTexture('block', 32, 32);```
+
+
 
 
 # 그룹
@@ -192,6 +203,10 @@ function update (time, delta)
 ``` javascript
 ```
 
+
+
+
+
 # 입력
 
 씬에서 입력을 받기
@@ -207,7 +222,7 @@ GameObject 에서 입력 받기
 
   * GameObject.setInteractive()
 
-```
+``` javascript
 var shape = new Phaser.Geom.Ellipse(33, 67, 66, 133);
 sprite.setInteractive(shape, Phaser.Geom.Ellipse.Contains);
 ```
@@ -242,7 +257,7 @@ function update() {
 this.input.on('pointerdown', function (pointer) { this.add.image(pointer.x, pointer.y, 'logo'); });
 ```
 
-```
+``` javascript
 (GameObject).on('pointerdown', function (pointer) { this.add.image(pointer.x, pointer.y, 'logo'); });
 ```
 
@@ -254,7 +269,8 @@ this.input.on('pointerdown', function (pointer) { this.add.image(pointer.x, poin
 
   * gameobjectdown
 
-```
+
+``` javascript
 this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visible = false; });
 ```
 
@@ -267,6 +283,118 @@ this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visi
 ## 입력 잠그기
 
 * https://phaser.io/examples/v3/view/input/mouse/pointer-lock
+
+
+
+## 키보드 입력
+
+* https://phaser.io/examples/v3/category/input/keyboard
+* Phaser.Input.Keyboard.KeyboardPlugin
+  * https://photonstorm.github.io/phaser3-docs/Phaser.Input.Keyboard.KeyboardPlugin.html
+* keyboard event (native dom)
+  * https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
+* KeyboardEvent
+
+
+사용할 키를 등록해서 눌림 여부를 확인하는 듯
+
+``` javascript
+var keys;
+
+keys = this.input.keyboard.addKeys('P,H,A,S,E,R');
+
+if(keys.P.isDown) { /* do */ }
+```
+
+또는
+
+``` javascript
+var keyA;
+keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+if (keyA.isDown) {
+    console.log('A');
+}
+```
+
+등록한 키로 이벤트 함수 연결
+
+``` javascript
+var spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+spaceKey.on('down', function (key, event) {
+});
+
+```
+
+전역등록을 하는 방법
+
+``` javascript
+// 1
+this.input.keyboard.on('keyup', function (event) {
+  if (event.keyCode === 37) {
+    // do
+  }
+}
+// 2
+this.input.keyboard.on('keydown-SHIFT', function (event) {
+    console.log('shift:down:');
+});
+this.input.keyboard.on('keyup-SHIFT', function (event) {
+    console.log('shift:up:');
+});
+
+// event == Phaser.Input.Keyboard.Events
+```
+
+1회성 키 눌림인 듯
+
+``` javascript
+Phaser.Input.Keyboard.JustDown
+```
+
+눌림체크?
+
+``` javascript
+var cursors;
+cursors = this.input.keyboard.createCursorKeys();
+if (this.input.keyboard.checkDown(cursors.left, 250)) {
+}
+```
+
+SHIFT 키 눌림
+
+``` javascript
+_shiftKeyPressed = false;
+this.input.keyboard.on('keydown-SHIFT', (event) => {
+    this._shiftKeyPressed = true;
+    //console.log('shift down');
+});
+this.input.keyboard.on('keyup-SHIFT', (event) => {
+    this._shiftKeyPressed = false;
+    //console.log('shift up');
+});
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # dom 엘리먼트 사용
 
@@ -287,6 +415,7 @@ this.input.on('gameobjectdown', function (pointer, gameObject) { gameObject.visi
   const game = new Phaser.Game(config);
 
 ```
+
 
 **create()** 함수에서 임의 버튼 **BULMA** 를 사용해서 추가
 
@@ -312,6 +441,11 @@ html을 그대로 사용해서 오브젝트 생성해서 갖다 쓰기
 ```
 const button =
 ```
+
+
+
+
+
 
 # 추가모듈 : Dat.gui
 

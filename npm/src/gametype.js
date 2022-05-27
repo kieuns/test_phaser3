@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+
+import Phaser from 'phaser'
 
 class XY
 {
@@ -31,9 +34,15 @@ function xy_2_str(x, y)
     return '(' + x + ',' + y + ')';
 }
 
+/** @param {Phaser.Math.Vector2} [vec2] */
+function vec2_2_str(vec2)
+{
+    return '(' + vec2.x.toFixed(4) + ',' + vec2.y.toFixed(4) + ')';
+}
+
 // function get_func_name() {
 //     return get_func_name.caller.name
 // }
 
 
-export { XY, xy_2_str };
+export { XY, xy_2_str, vec2_2_str };

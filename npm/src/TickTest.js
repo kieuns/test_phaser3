@@ -1,9 +1,11 @@
+/* eslint-disable no-constant-condition */
 /* eslint-disable no-unused-vars */
 
-// @ts-ignore
-import Phaser, { Time } from 'phaser'
+import Phaser from 'phaser'
+import { vec2_2_str, xy_2_str } from './gametype';
+import { GameOption } from './main';
 
-////
+//=====================================================================================================================
 
 class TickPlay
 {
@@ -33,7 +35,7 @@ class TickPlay
     getNowAsTime() { return this._tickNowIndex * this._tickMaxPerSec; }
 
 
-    /** @param {number} expectEndTime sec */
+    /** @param {number} expectEndTime unit:sec */
     start(expectEndTime)
     {
         this._expectEndTime = this._tickMaxPerSec * (expectEndTime ? expectEndTime : (12*60));
@@ -89,18 +91,19 @@ class TickPlay
      * @param {function} callback - 호출 함수
      * @param {number} repeatCnt
      */
-    reserveBy(time, callback, repeatCnt)
+    reserveBy(time, callback, repeatCnt = 1)
     {
         if(!this._loopStarted) { console.warn('TickPlay : not started'); return; }
 
-        let loop_cnt = repeatCnt ? repeatCnt : 1;
         let repeat_time = time;
 
-        for(let i = 0; i < loop_cnt; i++)
+        for(let i = 0; i < repeatCnt; i++)
         {
             let nx_tick = this._tickNowIndex+Math.ceil(time*this._tickMaxPerSec);
 
-            console.log('tickplay : now: ', this._tickNowIndex, ' expect at : ', nx_tick, ', time:', time.toFixed(4));
+            if(GameOption.log_detail()) {
+                console.log('tickplay : now: ', this._tickNowIndex, ' expect at : ', nx_tick, ', time:', time.toFixed(4));
+            }
 
             this._workTodo.push({tick: nx_tick, func:callback, delete:false});
 
@@ -109,44 +112,156 @@ class TickPlay
     }
 }
 
-////
+//=====================================================================================================================
 
 class ObjectMover
 {
-    #sprite = undefined;
-    // @ts-ignore
-    #fromPos = undefined;
-    // @ts-ignore
-    #toPos = undefined;
+    /** @type {Phaser.GameObjects.Image} */
+    _sprite = null;
 
-    getSprite() { return this.#sprite; }
+    /** @type {Phaser.Math.Vector2} */
+    _posFrom = new Phaser.Math.Vector2();
+
+    /** @type {Phaser.Math.Vector2} */
+    _posTo = new Phaser.Math.Vector2();
+
+    /** 현재 위치
+     * @type {Phaser.Math.Vector2}
+     */
+    _posCurrent = new Phaser.Math.Vector2();
+
+    /** @type {number} 기본 회전 상태 */
+    _rotationCorrection = 0;
+
+    /** @type {boolean} */
+    _moveStart = false;
+
+    /** @type {number} 이동할 속도. 픽셀 단위. Pixel Per Sec */
+    _moveSpeed = 0;
+
+    /** @type {number} 이동할 거리. 픽셀단위. */
+    _moveDistance = 0;
+
+    /** @type {number} 0~1 사이의 퍼센트 기준으로 #moveSpeed는 몇 %인가? */
+    _movePercentUnit = 0;
+
+    /** @type {number} 0~1 사이의 퍼센트. 현재 이동한 %는? */
+    _movingProgress = 0;
+
+    /** @returns {Phaser.GameObjects.Image} */
+    spriteGet()
+    {
+        return this._sprite;
+    }
 
     /** @param {Phaser.GameObjects.Image} spriteObj */
     initWith(spriteObj)
     {
-        this.#sprite = spriteObj;
+        this._sprite = spriteObj;
     }
 
     /**
-     * @param {Phaser.Math.Vector2} fromPos
-     * @param {Phaser.Math.Vector2} toPos
+     * @param {number} rad - 기본회전상태. 0도는 오른쪽(1,0) 방향인데 이미지의 회전상태값을 저장해둔다.
+     * */
+    rotationCorrectionSet(rad)
+    {
+        this._rotationCorrection = rad;
+        console.log('spr:',this._sprite.name, ':Rotation ',this._sprite.rotation.toFixed(4));
+        // 시계방향 회전인가부네
+        this._sprite.rotation = rad;
+    }
+
+    /** 오브젝트를 회전 시킨다. 오른쪽((1.0))이 0도 기준. 뭔가 대충 맞긴했네.
+     * @param {number} rad - 라디언각도값
      */
-    setMovParam(fromPos, toPos)
+    rotationSet(rad)
     {
-        this.#fromPos = fromPos;
-        this.#toPos = toPos;
+        this._sprite.rotation = (this._rotationCorrection + rad);
+        //this.#sprite.rotation = (rad);
     }
 
-    start()
+    /** @param {number} rad - 라디언각도값 */
+    rotationAdd(rad)
     {
+        this._sprite.rotation += rad;
     }
 
-    onMove()
+
+    /** 이동할 위치를 설정한다.
+     * @param {number} sx
+     * @param {number} sy
+     * @param {number} dx
+     * @param {number} dy
+     */
+    moveSet(sx, sy, dx, dy, speed, moveStart = false)
     {
+        this._posFrom.set(sx, sy);
+        this._posTo.set(dx, dy);
+        this._posCurrent.set(0, 0);
+
+        this._moveSpeed = speed;
+        this._moveDistance = this._posTo.clone().subtract(this._posFrom).length();
+        this._movePercentUnit = this._moveSpeed / this._moveDistance;
+
+        this._movingProgress = 0;
+
+        if(moveStart) {
+            this._moveStart = true;
+        }
     }
+
+    /**
+     * @param {Phaser.Math.Vector2} [v2s]
+     * @param {Phaser.Math.Vector2} [v2e]
+     * @param {number} [speed]
+     * @param {boolean} [moveStart]
+     */
+    moveSet2(v2s, v2e, speed, moveStart = false)
+    {
+        this.moveSet(v2s.x, v2s.y, v2e.x, v2e.y, speed, moveStart);
+    }
+
+    /** @param {number} dt - unit:sec */
+    onMove(dt)
+    {
+        if(!this._moveStart) { return; }
+        let moved_dir = this._posTo.clone().subtract(this._posFrom).normalize();
+        this._movingProgress += (this._movePercentUnit * dt);
+        this._movingProgress = Math.min(1, this._movingProgress);
+        moved_dir.scale(this._movingProgress);
+        this._posCurrent.set(this._posFrom.x + (this._moveDistance * moved_dir.x), this._posFrom.y + (this._moveDistance * moved_dir.y));
+
+        this._sprite.setPosition(this._posCurrent.x, this._posCurrent.y);
+
+        if(GameOption.log_detail()) {
+            console.log.apply(console, [
+                'from: ', vec2_2_str(this._posFrom),
+                ' to: ', vec2_2_str(this._posTo),
+                ' cnt: ', vec2_2_str(this._posCurrent),
+                ' progress: ', this._movingProgress]);
+
+        }
+
+        if(this._movingProgress >= 1)
+        {
+            this._moveStart = false;
+            console.log('landed');
+        }
+    }
+
+    // /**
+    //  * @param {Phaser.Math.Vector2} fromPos
+    //  * @param {Phaser.Math.Vector2} toPos
+    //  */
+    //  moveParamSet(fromPos, toPos)
+    //  {
+    //      this.#fromPos = fromPos;
+    //      this.#toPos = toPos;
+    //  }
+
 }
 
-////
+//=====================================================================================================================
 
 class SimpleLine
 {
@@ -184,14 +299,22 @@ class SimpleLine
     }
 }
 
-////
+//=====================================================================================================================
 
 class ClickedLine
 {
+    /** @type {SimpleLine} */
     _simpleLine = new SimpleLine();
+
+    /** @type {Phaser.Scene} */
     _scene = null;
+
+    /** @type {Phaser.Geom.Line} */
     _lineGeom = null;
+
     _lineStyle = { fillStyle:{color:0xffffff, size:1, alpha:1.0 } };
+
+    get line() { return this._lineGeom; }
 
     constructor(scene, x, y)
     {
@@ -219,15 +342,36 @@ class ClickedLine
         this._simpleLine.setEndPosition();
     }
 
-    // @ts-ignore
+    /**
+     * @param {Phaser.GameObjects.Graphics} graphic
+     * @param {number} dt
+     */
     onDraw(graphic, dt)
     {
         graphic.lineStyle(this._lineStyle.fillStyle.size, this._lineStyle.fillStyle.color, this._lineStyle.fillStyle.alpha);
         graphic.strokeLineShape(this._lineGeom);
     }
+
+    /** @returns {number} Math.atan() 리턴값 */
+    rotationGet()
+    {
+        let dx = Math.ceil(this._lineGeom.x2 - this._lineGeom.x1);
+        let dy = Math.ceil(this._lineGeom.y2 - this._lineGeom.y1);
+        let slope = dy / dx;
+        //let rad = Math.atan(slope);
+        // -PI ~ PI (-180 ~ 180) 값을 구하는 aton2를 쓰니 좀 더 편하다.
+        let rad = Math.atan2(dy, dx);
+        if(GameOption.is_detail_log)
+        {
+            console.log.apply(console, ['rot (x2,x1)',this._lineGeom.x2.toFixed(4), ',', this._lineGeom.x1.toFixed(4), '(y2,y1)',this._lineGeom.y2.toFixed(4), ',', this._lineGeom.y1.toFixed(4)]);
+            console.log.apply(console, ['rot (x2-x1)', dx, ' (y2-y1)', dy]);
+            console.log('Math.atan(): ', rad.toFixed(4), ':', Phaser.Math.RadToDeg(rad).toFixed(4));
+        }
+        return rad;
+    }
 }
 
-////
+//=====================================================================================================================
 
 export class TickTest extends Phaser.Scene
 {
@@ -238,21 +382,24 @@ export class TickTest extends Phaser.Scene
 
     /** @type {ObjectMover} */
     _objMov1 = null;
+
     /** @type {ObjectMover} */
     _objMov2 = null;
 
     /** @type {array} */
     _clickLineArr = null;
 
-    /** @type {Phaser.GameObjects.Image} */
-    //_spr1 = null;
+    /** @type {ClickedLine} */
+    _clickedLine = null;
+
+    /** @type {boolean} */
+    _shiftKeyPressed = false;
 
     constructor()
     {
         super('TickTest');
         TickTest.instance = this;
         this._mouseDown = false;
-        this._clickedLine = null;
         console.log(this.constructor.name, ': done');
     }
 
@@ -276,23 +423,36 @@ export class TickTest extends Phaser.Scene
 
         this._objMov2 = new ObjectMover();
         this._objMov2.initWith(this.add.image(150, 150, 'missile'));
+        this._objMov2.rotationCorrectionSet(Math.PI/2); // 90'
 
-        //this._spr1 = this.add.image(150, 150, 'missile');
-
-        // @ts-ignore
-        this._tickPlay.reserveBy(0.1, () => {
-            this._objMov2.getSprite().angle = this._objMov2.getSprite().angle + 5;
-        }, 10);
+        // this._tickPlay.reserveBy(0.1, () => {
+        //     this._objMov2.getSprite().angle = this._objMov2.getSprite().angle + 5;
+        // }, 10);
 
         this.input.on('pointerdown', this.onPointerDown.bind(this));
         this.input.on('pointerup', this.onPointerUp.bind(this));
         this.input.on('gameout', this.onPointerUp); // canvas out
         this.input.on('pointermove', this.onPointerMove.bind(this));
 
+        this.input.keyboard.on('keydown', (event) => {
+            if(event.keyCode === Phaser.Input.Keyboard.KeyCodes.SHIFT) {
+                this._shiftKeyPressed = true; console.log('shift down');
+            }
+        });
+        // 크롬에서 안되는데 왜지?
+        this.input.keyboard.on('keyup', (event) => {
+            if(event.keyCode === Phaser.Input.Keyboard.KeyCodes.SHIFT) {
+                this._shiftKeyPressed = false; console.log('shift up');
+            }
+        });
+
         this.graphics = this.add.graphics();
     }
 
-    // @ts-ignore
+    /**
+     * @param {number} time - unit ms
+     * @param {number} delta - unit ms
+     */
     update(time, delta)
     {
         this.graphics.clear();
@@ -301,6 +461,9 @@ export class TickTest extends Phaser.Scene
         }
         // @ts-ignore
         this._clickLineArr.forEach((item, index, array) => item.onDraw(this.graphics, delta) );
+
+        this._objMov1.rotationAdd(2 * (delta/1000));
+        this._objMov2.onMove(delta);
     }
 
     cancelInputCapture()
@@ -339,9 +502,16 @@ export class TickTest extends Phaser.Scene
         }
         if(this._mouseDown && pointer.leftButtonDown())
         {
-            //console.log('onPointerMove', pointer);
-            if(this._clickedLine) {
-                this._clickedLine.updateEndPosition(pointer.x, pointer.y);
+            if(this._clickedLine)
+            {
+                let x = pointer.x;
+                let y = pointer.y;
+                //if(this._shiftKeyPressed) {
+                if(true) {
+                    x = x - (pointer.x % 10);
+                    y = y - (pointer.y % 10);
+                }
+                this._clickedLine.updateEndPosition(x, y);
             }
         }
     }
@@ -357,6 +527,8 @@ export class TickTest extends Phaser.Scene
         }
         let lbtn_up = pointer.leftButtonReleased();
 
+        if(GameOption.log_detail()) { console.log('detail'); }
+
         if(this._mouseDown && lbtn_up)
         {
             this._mouseDown = false;
@@ -367,14 +539,16 @@ export class TickTest extends Phaser.Scene
                 let tm_line = this._clickedLine;
                 this._clickedLine = null;
 
-                // @ts-ignore
+                this._objMov2.rotationSet(tm_line.rotationGet());
+                this._objMov2.moveSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true);
+
                 this._tickPlay.reserveBy(5, (() => {
-                    console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime());
-                    // @ts-ignore
+                    if(GameOption.log_detail()) { console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime()); }
+
                     let idx = this._clickLineArr.findIndex((v, i, a) => v === tm_line);
                     if(idx !== -1) {
                         this._clickLineArr.splice(idx, 1);
-                        console.log('_clickLineArr : count : ', this._clickLineArr.length);
+                        if(GameOption.log_detail()) { console.log('_clickLineArr : count : ', this._clickLineArr.length); }
                     }
                 }).bind(this));
             }

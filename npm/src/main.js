@@ -32,6 +32,15 @@ export var GameOption =
     LocalStorageName: "app_game_220506",
     DeltaTime: 0,
     DevMode: undefined,
+
+    _LogLevel: 2,
+    log_basic : (() => GameOption._LogLevel > 0),
+    log_detail : (() => GameOption._LogLevel > 2),
+
+    // logDetail : { get logDetail() { return GameOption._LogLevel > 2; } },
+    // logBasic : { get logBasic() { return GameOption._LogLevel > 0; } },
+
+    __end__:-1
 };
 
 /** 게임에서 쓰는 상수값을 모아 두는 곳 */
@@ -43,6 +52,7 @@ export var GameConst =
     TweenTime_Short: 100,
     TweenTime_OneSec: 1000,
     DefaultEasing: Phaser.Math.Easing.Back.Out,
+    __end__:-1
 };
 
 /** 게임에서 쓰는 글로벌 데이터를 저장하기 위한 곳 */
@@ -50,6 +60,7 @@ export var GameData =
 {
     /** GameStat의 인스턴스 */
     stat: undefined,
+    __end__:-1
 };
 
 

@@ -96,7 +96,7 @@ class StageLogic
 {
     constructor()
     {
-        this.boardSize = new XY(ResInfo.BoardViewSpec.xSize, ResInfo.BoardViewSpec.ySize);
+        this.boardSize = new XY(ResInfo.BoardViewSpec.tileXLen, ResInfo.BoardViewSpec.tileYLen);
     }
 
     /** @param {number} dt delta-time */
