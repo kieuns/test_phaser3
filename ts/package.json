@@ -3,6 +3,12 @@
 	"version": "1.0.0",
 	"description": "A typescript template project for Phaser 3 using Parceljs",
 	"scripts": {
+		"TickTest": "parcel src/tick_test.html -p 8000",
+		"TestAny": "parcel src/test_any.html -p 8000",
+		"CurveTest": "parcel src/curve_test.html -p 8000",
+		"Blast": "parcel src/blast.html -p 8000"
+	},
+	"bak_scripts": {
 		"start": "parcel src/sample.html -p 8000",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"lint": "eslint ./src --ext .js,.jsx,.ts,.tsx",
@@ -25,6 +31,7 @@
 		"typescript": "^3.8.3"
 	},
 	"dependencies": {
+		"dat.gui": "^0.7.9",
 		"phaser": "^3.55.2"
 	},
 	"parcelCleanPaths": [
