@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 
 import Phaser from 'phaser'
-import { vec2_2_str, xy_2_str } from './gametype';
+import { vec2_2_str, xy_2_str } from './lib_gametype';
 import { GameOption } from './main';
 
 //=====================================================================================================================
@@ -152,14 +152,12 @@ class ObjectMover
     _callWhenFinish = null;
 
     /** @returns {Phaser.GameObjects.Image} */
-    spriteGet()
-    {
+    spriteGet() {
         return this._sprite;
     }
 
     /** @param {Phaser.GameObjects.Image} spriteObj */
-    initWith(spriteObj)
-    {
+    initWith(spriteObj) {
         this._sprite = spriteObj;
     }
 
@@ -389,7 +387,7 @@ class ClickedLine
 
 //=====================================================================================================================
 
-export class TickTest extends Phaser.Scene
+export class TickTestScene extends Phaser.Scene
 {
     static instance = undefined;
 
@@ -414,7 +412,7 @@ export class TickTest extends Phaser.Scene
     constructor()
     {
         super('TickTest');
-        TickTest.instance = this;
+        TickTestScene.instance = this;
         this._mouseDown = false;
         console.log(this.constructor.name, ': done');
     }

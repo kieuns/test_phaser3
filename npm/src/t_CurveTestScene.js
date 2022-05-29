@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import Phaser from 'phaser'
 
 // class doc
@@ -149,5 +150,5 @@ export class CurveTestScene extends Phaser.Scene
             // });
         }
     }
-};
+}
 

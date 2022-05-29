@@ -1,4 +1,4 @@
-import { ResInfo } from "./res.js";
+import { ResInfo } from "./lib_res.js";
 import Phaser from 'phaser'
 
 // @ts-ignore

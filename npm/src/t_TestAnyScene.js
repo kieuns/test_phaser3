@@ -6,14 +6,14 @@ import Phaser from 'phaser'
 // example
 // -
 
-export class TestAny extends Phaser.Scene
+export class TestAnyScene extends Phaser.Scene
 {
     static instance = undefined;
 
     constructor()
     {
         super('TestAny');
-        TestAny.instance = this;
+        TestAnyScene.instance = this;
         console.log(this.constructor.name, "constructor(): done");
     }
 

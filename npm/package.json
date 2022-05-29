@@ -3,11 +3,11 @@
 	"version": "1.0.0",
 	"description": "A template project for Phaser 3 using Parceljs",
 	"scripts": {
-		"t_bulma": "parcel src/bulma_test.html -p 8000",
+		"t_bulma": "parcel src/t_bulma_test.html -p 8000",
 		"t_main": "parcel src/main.html -p 8000",
-		"t_curve": "parcel src/curve_test.html -p 8000",
-		"t_testany": "parcel src/test_any.html -p 8000",
-		"t_tickplay": "parcel src/tick_test.html -p 8000",
+		"t_curve": "parcel src/t_curve_test.html -p 8000",
+		"t_testany": "parcel src/t_test_any.html -p 8000",
+		"t_tickplay": "parcel src/t_tick_test.html -p 8000",
 		"start": "parcel src/index.html -p 8000"
 	},
 	"scripts.bak": {

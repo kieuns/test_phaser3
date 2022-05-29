@@ -2,9 +2,9 @@
 
 import Phaser from 'phaser'
 
-import { XY } from "./gametype.js";
+import { XY } from "./lib_gametype.js";
 import { GameData, GameOption } from "./main.js";
-import { ResInfo } from "./res.js";
+import { ResInfo } from "./lib_res.js";
 
 
 //=============================================================================================================================================================
