@@ -7,8 +7,6 @@ import { log } from './log';
 import { ObjectMover } from './ObjectMover';
 import { TickPlay } from './TickPlay';
 
-//=====================================================================================================================
-
 
 //=====================================================================================================================
 
@@ -144,11 +142,14 @@ export class TickTestScene extends Phaser.Scene
     /** @type {boolean} */
     _shiftKeyPressed = false;
 
+    _mouseDown = false;
+    /** type {Phaser.GameObjects.Graphics} */
+    graphics = null;
+
     constructor()
     {
         super('TickTest');
         TickTestScene.instance = this;
-        this._mouseDown = false;
         console.log(this.constructor.name, ': done');
     }
 
@@ -308,7 +309,7 @@ export class TickTestScene extends Phaser.Scene
         this._objMov2.rotationSet(tm_line.rotationGet());
         this._objMov2.moveParamSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true, () => { console.log('landed'); });
 
-        this._tickPlay.reserveBy(5, (() => {
+        this._tickPlay.reserveBy(2, (() => {
             if(log.detail) { console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime()); }
 
             let idx = this._clickLineArr.findIndex((v, i, a) => v === tm_line);

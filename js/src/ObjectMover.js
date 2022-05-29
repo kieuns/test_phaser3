@@ -152,14 +152,4 @@ export class ObjectMover
         }
     }
 
-    // /**
-    //  * @param {Phaser.Math.Vector2} fromPos
-    //  * @param {Phaser.Math.Vector2} toPos
-    //  */
-    //  moveParamSet(fromPos, toPos)
-    //  {
-    //      this.#fromPos = fromPos;
-    //      this.#toPos = toPos;
-    //  }
-
 }

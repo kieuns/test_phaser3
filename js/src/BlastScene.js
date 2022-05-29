@@ -1,16 +1,11 @@
 /* eslint-disable no-unused-vars */
 
 import Phaser from 'phaser'
-
 import { XY } from "./lib_gametype.js";
 import { GameData, GameOption } from "./main.js";
 import { ResInfo } from "./lib_res.js";
 
-
-//=============================================================================================================================================================
-// BlastScene class - 리소스 로딩하고 끝. BlastScene 으로 넘어감
-//=============================================================================================================================================================
-
+//=====================================================================================================================
 
 export class BlastScene extends Phaser.Scene
 {
@@ -20,16 +15,14 @@ export class BlastScene extends Phaser.Scene
     {
         super('BlastScene');
 
-        BlastScene.instance = this; // todo: 현재 켜진 페이져 씬을 얻는 방법은?
+        BlastScene.instance = this;
 
         this.loading_pv = 0; // 로딩 시간을 저장하는 임시 변수. 이전 항목의 로딩 시간 저장용.
         this.img_bg = null;
-        /** 테스트용 볼 이미지 */
-        this.img_ball = null;
-        //this.mov_assist = null;
+        this.img_ball = null; // 테스트용 볼 이미지
+
         console.log(this.constructor.name, "constructor(): done");
     }
-
 
     preload()
     {
@@ -44,7 +37,7 @@ export class BlastScene extends Phaser.Scene
         // this.load.image('tile-bg-001', 'assets/block_glow.png');
 
         let basic_set = ResInfo.BasicSet;
-        //console.log(basic_set);
+
         for(let key_str in basic_set)
         {
             console.log(key_str);
@@ -53,13 +46,7 @@ export class BlastScene extends Phaser.Scene
             this.load.image(value.key, value.filename);
         }
 
-        //this.load.image('tile-bg-001', 'assets/block_glow.png');
-
         console.log("BlastScene:preload(): 終 ", this.time.now);
-    }
-
-    _test()
-    {
     }
 
     create()
@@ -77,8 +64,6 @@ export class BlastScene extends Phaser.Scene
         this.img_bg.setDisplaySize(_scrn_w, _scrn_h);
 
         this.img_tilebg = this.add.image(0, 0, 'tile-bg-001');
-
-        this._test();
 
         // 스테이지 초기화
         this.stageView = new StageView();
@@ -128,6 +113,7 @@ var ATileView = new Phaser.Class({
         this.jobTodo = undefined; // 이 타일에서 할일의 모음
     }
 });
+
 // function ATileView(scene) {}
 // ATileView.prototype = Phaser.GameObjects.Image;
 // ATileView.prototype.init = function(scene)
