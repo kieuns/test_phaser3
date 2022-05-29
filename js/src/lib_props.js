@@ -1,8 +1,8 @@
+/* eslint-disable no-unused-vars */
 import { ResInfo } from "./lib_res.js";
 import Phaser from 'phaser'
 
 // @ts-ignore
-// eslint-disable-next-line no-unused-vars
 var AFxClickReactor = new Phaser.Class({
     Extends: Phaser.GameObjects.Image,
     initialize:

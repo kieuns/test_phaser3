@@ -1,3 +1,57 @@
+
+
+
+## Extra Install : Dat.gui
+
+  * https://www.npmjs.com/package/dat.gui
+
+```
+<script type="text/javascript" src="dat.gui.min.js"></script>
+```
+
+or
+
+```
+$ npm install --save dat.gui
+```
+
+how to use (from web)
+
+``` javascript
+// CommonJS:
+const dat = require('dat.gui');
+
+// ES6:
+import * as dat from 'dat.gui';
+const gui = new dat.GUI();
+```
+
+## (.d.ts) 파일 만들기
+
+* https://typescript-kr.github.io/pages/declaration-files/creating-dts-files-from-js.html
+
+커맨드라인으로 만들기
+
+```
+npx typescript src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----
+----
+
 ![phaser3-parceljs-template](https://user-images.githubusercontent.com/2236153/71606463-37a0da80-2b2e-11ea-9b5f-5d26ccc84f91.png)
 
 # Phaser 3 + Parcel Template
@@ -145,27 +199,3 @@ Change 8000 to whatever you want.
 
 [MIT License](https://github.com/ourcade/phaser3-parcel-template/blob/master/LICENSE)
 
-## Extra Install : Dat.gui
-
-  * https://www.npmjs.com/package/dat.gui
-
-```
-<script type="text/javascript" src="dat.gui.min.js"></script>
-```
-
-or
-
-```
-$ npm install --save dat.gui
-```
-
-how to use (from web)
-
-``` javascript
-// CommonJS:
-const dat = require('dat.gui');
-
-// ES6:
-import * as dat from 'dat.gui';
-const gui = new dat.GUI();
-```
