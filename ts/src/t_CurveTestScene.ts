@@ -150,5 +150,5 @@ export class CurveTestScene extends Phaser.Scene
             // });
         }
     }
-};
+}
 

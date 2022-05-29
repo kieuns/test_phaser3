@@ -106,7 +106,7 @@ export class TickPlay
         {
             let nx_tick = this._tickNowIndex+Math.ceil(time*this._tickMaxPerSec);
 
-            console.log('tickplay : now: ', this._tickNowIndex, ' expect at : ', nx_tick, ', time:', time.toFixed(4));
+            if(log.detail) { console.log('tickplay : now: ', this._tickNowIndex, ' expect at : ', nx_tick, ', time:', time.toFixed(4)); }
 
             this._workTodo.push({tick: nx_tick, func:callback, delete:false});
 

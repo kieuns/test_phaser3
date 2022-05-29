@@ -5,6 +5,8 @@ import { ObjectMover } from "./ObjectMover";
 import { TickPlay } from "./TickPlay";
 
 
+//=====================================================================================================================
+
 class SimpleLineInfo
 {
     private startPos = new Phaser.Math.Vector2(-100, -100);
@@ -43,13 +45,13 @@ class SimpleLineInfo
     }
 }
 
-////
+//=====================================================================================================================
 
 class ClickedLine
 {
-    _simpleLine = new SimpleLineInfo();
-    _scene = null;
-    _lineGeom = null;
+    _simpleLine:SimpleLineInfo = new SimpleLineInfo();
+    _scene:Phaser.Scene = null;
+    _lineGeom:Phaser.Geom.Line = null;
     _lineStyle = { fillStyle:{color:0xffffff, size:1, alpha:1.0 } };
 
     get line() { return this._lineGeom; }
@@ -109,7 +111,7 @@ class ClickedLine
     }
 }
 
-////
+//=====================================================================================================================
 
 export class TickTestScene extends Phaser.Scene
 {
@@ -296,7 +298,7 @@ export class TickTestScene extends Phaser.Scene
         this._objMov2.rotationSet(tm_line.rotationGet());
         this._objMov2.moveParamSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true, () => { console.log('landed'); });
 
-        this._tickPlay.reserveBy(5, (() => {
+        this._tickPlay.reserveBy(2, (() => {
             if(log.detail) { console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime()); }
 
             let idx = this._clickLineArr.findIndex((v, i, a) => v === tm_line);
