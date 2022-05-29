@@ -1,10 +1,10 @@
 
 class XY
 {
-    /** number */
-    x = -1;
-    /** number */
-    y = -1;
+    x:number = -1;
+
+    y:number = -1;
+
     constructor(x_ = -1, y_ = -1)
     {
         this.x = x_; this.y = y_;
@@ -31,9 +31,11 @@ function xy_2_str(x, y)
     return '(' + x + ',' + y + ')';
 }
 
-// function get_func_name() {
-//     return get_func_name.caller.name
-// }
+function vec2_2_str(vec2:Phaser.Math.Vector2)
+{
+    return '(' + vec2.x.toFixed(4) + ',' + vec2.y.toFixed(4) + ')';
+}
 
 
-export { XY, xy_2_str };
+
+export { XY, xy_2_str, vec2_2_str };

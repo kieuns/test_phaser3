@@ -11,9 +11,9 @@
 
 import Phaser from 'phaser'
 import { BlastScene } from './BlastScene';
-import { CurveTestScene } from './CurveTestScene';
-import { TestAny } from './TestAny';
-import { TickTest } from './TickTest';
+import { CurveTestScene } from './t_CurveTestScene';
+import { TestAnyScene } from './t_TestAnyScene';
+import { TickTestScene } from './t_TickTestScene';
 
 
 //=============================================================================================================================================================
@@ -32,6 +32,7 @@ export let GameOption =
     LocalStorageName: "app_game_220506",
     DeltaTime: 0,
     DevMode: undefined,
+    __end__:-1
 };
 
 /** 게임에서 쓰는 상수값을 모아 두는 곳 */
@@ -43,6 +44,7 @@ export let GameConst =
     TweenTime_Short: 100,
     TweenTime_OneSec: 1000,
     DefaultEasing: Phaser.Math.Easing.Back.Out,
+    __end__:-1
 };
 
 /** 게임에서 쓰는 글로벌 데이터를 저장하기 위한 곳 */
@@ -93,19 +95,33 @@ function preload_global()
 
     game.scene.add('BlastScene', BlastScene);
     game.scene.add('CurveTestScene', CurveTestScene);
-    game.scene.add('TestAny', TestAny);
-    game.scene.add('TickTest', TickTest);
+    game.scene.add('TestAny', TestAnyScene);
+    game.scene.add('TickTest', TickTestScene);
 
     let start_scene_name = 'BlastScene';
-    //@ts-ignore
-    // eslint-disable-next-line no-undef
-    if(argvStartSceneName) {
+    {
         //@ts-ignore
         // eslint-disable-next-line no-undef
-        start_scene_name = argvStartSceneName;
+        if(argvStartSceneName) {
+            //@ts-ignore
+            // eslint-disable-next-line no-undef
+            console.log('FirstScene: ', argvStartSceneName);
+            //@ts-ignore
+            // eslint-disable-next-line no-undef
+            start_scene_name = argvStartSceneName;
+        }
+        else {
+            console.log('FirstScene: No Scene info: ');
+        }
     }
-    game.scene.start(start_scene_name);
-    console.log("= preload_global(): done");
+    let the_scene = game.scene.getScene(start_scene_name);
+    if(the_scene === null) {
+        console.log('Scene.Start.Failed: ', start_scene_name);
+    }
+    else {
+        game.scene.start(start_scene_name);
+    }
+    console.log("= preload_global(): exit");
 }
 
 function main()
