@@ -70,6 +70,10 @@ export class BlastScene extends Phaser.Scene
         this.stageView.init();
     }
 
+    /**
+     * @param {number} [time] - unit ms
+     * @param {number} [delta] - unit ms
+     */
     update(time, delta)
     {
     }

@@ -146,6 +146,8 @@ export class TickTestScene extends Phaser.Scene
     /** type {Phaser.GameObjects.Graphics} */
     graphics = null;
 
+    ////
+
     constructor()
     {
         super('TickTest');
@@ -201,6 +203,7 @@ export class TickTestScene extends Phaser.Scene
         this.graphics = this.add.graphics();
     }
 
+    ////
 
     /**
      * @param {number} time - unit ms
@@ -219,6 +222,7 @@ export class TickTestScene extends Phaser.Scene
         this._objMov2.onMove(delta);
     }
 
+    ////
 
     /** @param {Phaser.Input.Pointer} pointer */
     onPointerDown(pointer)
@@ -263,7 +267,7 @@ export class TickTestScene extends Phaser.Scene
         }
     }
 
-
+    ////
 
     startMouseInputCapture(x, y)
     {
