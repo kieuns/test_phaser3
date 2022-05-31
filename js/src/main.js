@@ -10,10 +10,12 @@
 // https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html (this.input)
 
 import Phaser from 'phaser'
+
 import { CurveTestScene } from './t_CurveTestScene';
 import { TestAnyScene } from './t_TestAnyScene';
 import { TickTestScene } from './t_TickTestScene';
 import { BlastScene } from './BlastScene';
+import { ObjectMoveScene } from './t_ObjectMoveScene';
 
 
 //=============================================================================================================================================================
@@ -106,6 +108,7 @@ function preload_global()
     game.scene.add('CurveTestScene', CurveTestScene);
     game.scene.add('TestAny', TestAnyScene);
     game.scene.add('TickTest', TickTestScene);
+    game.scene.add('ObjectMove', ObjectMoveScene);
 
     let start_scene_name = 'BlastScene';
     {

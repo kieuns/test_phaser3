@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 
 import Phaser from 'phaser'
-
+import { vec2_2_str, xy_2_str } from './lib_gametype';
 import { ClickedLine } from './lib_geom';
 import { log } from './log';
 import { ObjectMover } from './ObjectMover';
@@ -10,8 +10,7 @@ import { TickPlay } from './TickPlay';
 
 //=====================================================================================================================
 
-
-export class TickTestScene extends Phaser.Scene
+export class ObjectMoveScene extends Phaser.Scene
 {
     static instance = undefined;
 
@@ -41,8 +40,8 @@ export class TickTestScene extends Phaser.Scene
 
     constructor()
     {
-        super('TickTest');
-        TickTestScene.instance = this;
+        super('ObjectMove');
+        ObjectMoveScene.instance = this;
         console.log(this.constructor.name, ': done');
     }
 
