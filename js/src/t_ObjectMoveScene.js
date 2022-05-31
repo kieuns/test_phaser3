@@ -36,6 +36,9 @@ export class ObjectMoveScene extends Phaser.Scene
     /** type {Phaser.GameObjects.Graphics} */
     graphics = null;
 
+    /** type {Phaser.GameObjects.Text[]} */
+    _textArr = [];
+
     ////
 
     constructor()
@@ -62,6 +65,8 @@ export class ObjectMoveScene extends Phaser.Scene
 
         this._objMov1 = new ObjectMover();
         this._objMov1.initWith(this.add.image(100, 100, 'missile'));
+        this._objMov1.rotationCorrectionSet(Math.PI/2); // 90'
+        this._objMov1.spriteGet().setOrigin(0.5, 1);
 
         this._objMov2 = new ObjectMover();
         this._objMov2.initWith(this.add.image(150, 150, 'missile'));
@@ -90,6 +95,13 @@ export class ObjectMoveScene extends Phaser.Scene
             }
         });
 
+        let text_y_begin = 20;
+        let text_y_step = 20;
+        for( let i = 0; i < 5; i++) {
+            let text1 = this.add.text(0, text_y_begin + (text_y_step * i), ">", { font: "15px Consolas" });
+            this._textArr.push(text1);
+        }
+
         this.graphics = this.add.graphics();
     }
 
@@ -101,6 +113,9 @@ export class ObjectMoveScene extends Phaser.Scene
      */
     update(time, delta)
     {
+        let str1 = '> update: time:' + time.toFixed(2) + ' delta(ms):' + delta.toFixed(2) + 'delta(sec):' + (delta/1000).toFixed(4);
+        this._textArr[0].text = str1;
+
         this.graphics.clear();
         if(this._clickedLine) {
             this._clickedLine.onDraw(this.graphics, delta);
@@ -108,7 +123,7 @@ export class ObjectMoveScene extends Phaser.Scene
         // @ts-ignore
         this._clickLineArr.forEach((item, index, array) => item.onDraw(this.graphics, delta) );
 
-        this._objMov1.rotationAdd(2 * ((delta/1000)));
+        this._objMov1.rotationMinus((2*Math.PI) * (delta/(1000*60)));
         this._objMov2.onMove(delta);
     }
 

@@ -471,3 +471,32 @@ const dat = require('dat.gui');
 import * as dat from 'dat.gui';
 const gui = new dat.GUI();
 ```
+
+
+
+
+# 폰트
+
+## 링크
+
+* http://phaser.io/examples/v3/view/animation/aseprite-animation : ttf 사용하는 것 있음
+* https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.Text.html : 폰트 api 레퍼런스
+* http://phaser.io/examples/v3/view/game-objects/bitmaptext/static/bitmaptext
+* http://phaser.io/examples/v3/view/display/masks/bitmap-mask-text-masking-text
+* http://phaser.io/examples/v3/view/display/masks/bitmap-mask-text
+* http://phaser.io/examples/v3/view/game-objects/bitmaptext/static/bitmaptextcanvas
+
+기본
+```
+// 1
+this._text1 = this.add.text(0, 20, "AAAA");
+// 2
+this._text1 = this.add.text(0, 20, "AAAA", { font: "65px Arial", fill: "#ff0044" });
+```
+
+글자에 링크 클릭을 설정할 수 있다.
+
+```
+var label = this.add.text(32, 32 + (i * 16), 'aaaa', { color: '#00ff00' });
+label.setInteractive();
+```

@@ -67,13 +67,18 @@ export class ObjectMover
     rotationSet(rad)
     {
         this._sprite.rotation = (this._rotationCorrection + rad);
-        //this.#sprite.rotation = (rad);
     }
 
-    /** @param {number} rad - 라디언각도값 */
+    /** @param {number} rad - 라디언각도값, 시계방향 */
     rotationAdd(rad)
     {
         this._sprite.rotation += rad;
+    }
+
+    /** @param {number} rad - 라디언각도값, 반시계방향 */
+    rotationMinus(rad)
+    {
+        this._sprite.rotation -= rad;
     }
 
 
