@@ -5,7 +5,7 @@ import { log } from "./log";
  * @example
  * let tickPlay = new TickPlay();
  * tickPlay.start(); // 스케쥴러 시작
- * tickPlay.reserveBy(0.1, () => { // 0.1초 뒤에 실행
+ * tickPlay.reserveOnTime(0.1, () => { // 0.1초 뒤에 실행
  *   console.log('workdone: ', tickPlay.getNowTick());
  * });
  */
@@ -15,7 +15,7 @@ export class TickPlay
     _tickNowIndex = 0;
 
     /** @type {number} */
-    _tickMaxPerSec = 10;
+    _tickPerSec = 10;
 
     /** @type {number} 게임이 끝나는 틱 */
     _tickCleared = -1;
@@ -23,27 +23,31 @@ export class TickPlay
     /** @type {number} 게임이 끝나는 시간 */
     _expectEndTime = 0;
 
+    /** @type {number} setInterval() 리턴값 */
     _tickTimerId = null;
 
+    /** @type {boolean} 루프 시작 되었나? */
     _loopStarted = false;
 
-    /** _workTodo:{time:number, func:()=>{}} [] = null;
-     * @type {array} */
+    /**
+     * _workTodo: { time:number, func:()=>{} }[];
+     * @type {array} 작업 목록을 들고 있을 배열
+     */
     _workTodo = null;
 
 
     getNowTick() { return this._tickNowIndex; }
 
-    getNowAsTime() { return this._tickNowIndex * this._tickMaxPerSec; }
+    getNowAsTime() { return this._tickNowIndex * this._tickPerSec; }
 
 
     /** @param {number} expectEndTime unit:sec */
     start(expectEndTime)
     {
-        this._expectEndTime = this._tickMaxPerSec * (expectEndTime ? expectEndTime : (12*60));
+        this._expectEndTime = this._tickPerSec * (expectEndTime ? expectEndTime : (12*60));
         this._tickNowIndex = 0;
         this._workTodo = [];
-        this._tickTimerId = setInterval( this.onTick.bind(this), 1000 / this._tickMaxPerSec );
+        this._tickTimerId = setInterval( this.onTick.bind(this), 1000 / this._tickPerSec );
         this._loopStarted = true;
         console.log('TickPlay : start');
     }
@@ -78,13 +82,13 @@ export class TickPlay
     }
 
     /**
-     * @param {number} time - 예약 시간, 정확한 시간 명시 ms
+     * @param {number} tick - 예약 타이밍. 틱 기반.
      * @param {function} callback - 호출 함수
      */
-    reserveTo(time, callback)
+    reserveOnTick(tick, callback)
     {
         if(!this._loopStarted) { console.warn('TickPlay : not started'); return; }
-        let nx_tick = Math.floor(time*this._tickMaxPerSec);
+        let nx_tick = Math.floor(tick * this._tickPerSec);
         this._workTodo.push({ tick:nx_tick, func:callback, delete:false });
     }
 
@@ -93,15 +97,18 @@ export class TickPlay
      * @param {function} callback - 호출 함수
      * @param {number} repeatCnt
      */
-    reserveBy(time, callback, repeatCnt = 1)
+    reserveOnTime(time, callback, repeatCnt = 1)
     {
-        if(!this._loopStarted) { console.warn('TickPlay : not started'); return; }
+        if(!this._loopStarted) {
+            console.warn('TickPlay : not started');
+            return;
+        }
 
         let repeat_time = time;
 
         for(let i = 0; i < repeatCnt; i++)
         {
-            let nx_tick = this._tickNowIndex+Math.ceil(time*this._tickMaxPerSec);
+            let nx_tick = this._tickNowIndex + Math.ceil(time*this._tickPerSec);
 
             if(log.detail) { console.log('tickplay : now: ', this._tickNowIndex, ' expect at : ', nx_tick, ', time:', time.toFixed(4)); }
 

@@ -5,7 +5,7 @@ import Phaser from 'phaser'
 
 import { ClickedLine } from './lib_geom';
 import { log } from './log';
-import { ObjectMover } from './ObjectMover';
+import { SpriteMover } from './SpriteMover';
 import { TickPlay } from './TickPlay';
 
 //=====================================================================================================================
@@ -18,10 +18,10 @@ export class TickTestScene extends Phaser.Scene
     /** @type {TickPlay} */
     _tickPlay = null;
 
-    /** @type {ObjectMover} */
+    /** @type {SpriteMover} */
     _objMov1 = null;
 
-    /** @type {ObjectMover} */
+    /** @type {SpriteMover} */
     _objMov2 = null;
 
     /** @type {ClickedLine[]} */
@@ -61,10 +61,10 @@ export class TickTestScene extends Phaser.Scene
         // @ts-ignore
         this._tickPlay.start();
 
-        this._objMov1 = new ObjectMover();
+        this._objMov1 = new SpriteMover();
         this._objMov1.initWith(this.add.image(100, 100, 'missile'));
 
-        this._objMov2 = new ObjectMover();
+        this._objMov2 = new SpriteMover();
         this._objMov2.initWith(this.add.image(150, 150, 'missile'));
         this._objMov2.rotationCorrectionSet(Math.PI/2); // 90'
 
@@ -110,7 +110,7 @@ export class TickTestScene extends Phaser.Scene
         this._clickLineArr.forEach((item, index, array) => item.onDraw(this.graphics, delta) );
 
         this._objMov1.rotationAdd(2 * ((delta/1000)));
-        this._objMov2.onMove(delta);
+        this._objMov2.onUpdate(delta);
     }
 
     ////
@@ -204,7 +204,7 @@ export class TickTestScene extends Phaser.Scene
         this._objMov2.rotationSet(tm_line.rotationGet());
         this._objMov2.moveParamSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true, () => { console.log('landed'); });
 
-        this._tickPlay.reserveBy(2, (() => {
+        this._tickPlay.reserveOnTime(2, (() => {
             if(log.detail) { console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime()); }
 
             let idx = this._clickLineArr.findIndex((v, i, a) => v === tm_line);

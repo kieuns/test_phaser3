@@ -1,12 +1,79 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable no-unused-vars */
 
+import dat from 'dat.gui';
 import Phaser from 'phaser'
 import { vec2_2_str, xy_2_str } from './lib_gametype';
 import { ClickedLine } from './lib_geom';
 import { log } from './log';
-import { ObjectMover } from './ObjectMover';
+import { SpriteMover } from './SpriteMover';
 import { TickPlay } from './TickPlay';
+
+//=====================================================================================================================
+
+class dgui
+{
+    /** @type {dgui} */
+    static instance = null;
+    static init() {
+        dgui.instance = new dgui();
+        dgui.instance.install();
+    }
+
+    /** @type {dat.GUI} */
+    _datGui = null;
+
+    /** dat.GUI 를 특정 돔에 설치한다. */
+    install()
+    {
+        this._datGui = new dat.GUI();
+        const target_dom = document.getElementById('datgui');
+        if (target_dom)
+        {
+            this._datGui.domElement.style.setProperty('position', 'absolute');
+            this._datGui.domElement.style.setProperty('top', '0px');
+            this._datGui.domElement.style.setProperty('left', '0px');
+            target_dom?.appendChild(this._datGui.domElement);
+        }
+        this.buidMenu();
+    }
+
+    // .listen() : 값의 변화를 계속 감시
+    // .onChange( (v) => {} ) : 값이 변할때 호출
+
+    /** 메뉴 빌드 */
+    buidMenu()
+    {
+        let root_folder = this._datGui;
+        {
+            root_folder.add(ObjectMoveScene.instance, 'MovType_AverageVelocity').name('정속')
+                .listen()
+                .onChange((v) => { this.update_MovType(1); });
+            root_folder.add(ObjectMoveScene.instance, 'MovType_AccelVelocity1').name('가속')
+                .listen()
+                .onChange((v) => { this.update_MovType(2); });
+        }
+        //let opt1_folder = this._datGui.addFolder('[옵션1]');
+    }
+
+    /** @param {number} [type] */
+    update_MovType(type)
+    {
+        let inst = ObjectMoveScene.instance;
+        console.log('update_MovType: ', type);
+        switch(type)
+        {
+        case 1:
+            inst.MovType_AverageVelocity = true;
+            inst.MovType_AccelVelocity1 = false;
+            break;
+        case 2:
+            inst.MovType_AverageVelocity = false;
+            inst.MovType_AccelVelocity1 = true;
+            break;
+        }
+    }
+}
 
 //=====================================================================================================================
 
@@ -17,11 +84,11 @@ export class ObjectMoveScene extends Phaser.Scene
     /** @type {TickPlay} */
     _tickPlay = null;
 
-    /** @type {ObjectMover} */
-    _objMov1 = null;
+    /** @type {SpriteMover} */
+    _movingObj1 = null;
 
-    /** @type {ObjectMover} */
-    _objMov2 = null;
+    /** @type {SpriteMover} */
+    _movingObj2 = null;
 
     /** @type {ClickedLine[]} */
     _clickLineArr = null;
@@ -38,6 +105,13 @@ export class ObjectMoveScene extends Phaser.Scene
 
     /** type {Phaser.GameObjects.Text[]} */
     _textArr = [];
+
+    ////
+
+    /** @type {boolean} 정속 움직임 */
+    MovType_AverageVelocity = true;
+    /** @type {boolean} 가속 움직임 */
+    MovType_AccelVelocity1 = false;
 
     ////
 
@@ -63,18 +137,16 @@ export class ObjectMoveScene extends Phaser.Scene
         // @ts-ignore
         this._tickPlay.start();
 
-        this._objMov1 = new ObjectMover();
-        this._objMov1.initWith(this.add.image(100, 100, 'missile'));
-        this._objMov1.rotationCorrectionSet(Math.PI/2); // 90'
-        this._objMov1.spriteGet().setOrigin(0.5, 1);
+        this._movingObj1 = new SpriteMover();
+        this._movingObj1.initWith(this.add.image(100, 100, 'missile'));
+        this._movingObj1.rotationCorrectionSet(Math.PI/2); // 90'
+        this._movingObj1.spriteGet().setOrigin(0.5, 1);
 
-        this._objMov2 = new ObjectMover();
-        this._objMov2.initWith(this.add.image(150, 150, 'missile'));
-        this._objMov2.rotationCorrectionSet(Math.PI/2); // 90'
+        this._movingObj2 = new SpriteMover();
+        this._movingObj2.initWith(this.add.image(150, 150, 'missile'));
+        this._movingObj2.rotationCorrectionSet(Math.PI/2); // 90'
 
-        // this._tickPlay.reserveBy(0.1, () => {
-        //     this._objMov2.getSprite().angle = this._objMov2.getSprite().angle + 5;
-        // }, 10);
+        // this._tickPlay.reserveBy(0.1, () => { this._objMov2.getSprite().angle = this._objMov2.getSprite().angle + 5; }, 10);
 
         this.input.on('pointerdown', this.onPointerDown.bind(this));
         this.input.on('pointerup', this.onPointerUp.bind(this));
@@ -103,6 +175,9 @@ export class ObjectMoveScene extends Phaser.Scene
         }
 
         this.graphics = this.add.graphics();
+
+        // Dat.GUI 설치
+        dgui.init();
     }
 
     ////
@@ -113,7 +188,7 @@ export class ObjectMoveScene extends Phaser.Scene
      */
     update(time, delta)
     {
-        let str1 = '> update: time:' + time.toFixed(2) + ' delta(ms):' + delta.toFixed(2) + 'delta(sec):' + (delta/1000).toFixed(4);
+        let str1 = '> update: time:' + time.toFixed(2) + ' delta(ms):' + delta.toFixed(2) + ' delta(sec):' + (delta/1000).toFixed(4);
         this._textArr[0].text = str1;
 
         this.graphics.clear();
@@ -123,8 +198,8 @@ export class ObjectMoveScene extends Phaser.Scene
         // @ts-ignore
         this._clickLineArr.forEach((item, index, array) => item.onDraw(this.graphics, delta) );
 
-        this._objMov1.rotationMinus((2*Math.PI) * (delta/(1000*60)));
-        this._objMov2.onMove(delta);
+        this._movingObj1.rotationMinus((2*Math.PI) * (delta/(1000*60)));
+        this._movingObj2.onUpdate(delta);
     }
 
     ////
@@ -174,16 +249,16 @@ export class ObjectMoveScene extends Phaser.Scene
 
     ////
 
-    startMouseInputCapture(x, y)
-    {
-        this._mouseDown = true;
-        this._clickedLine = new ClickedLine(this, x, y);
-    }
-
     cancelMouseInputCapture()
     {
         this._mouseDown = false;
         this._clickedLine = null;
+    }
+
+    startMouseInputCapture(x, y)
+    {
+        this._mouseDown = true;
+        this._clickedLine = new ClickedLine(this, x, y);
     }
 
     updateMouseInputCapture(pt_x, pt_y)
@@ -215,10 +290,10 @@ export class ObjectMoveScene extends Phaser.Scene
         let tm_line = this._clickedLine;
         this._clickedLine = null;
 
-        this._objMov2.rotationSet(tm_line.rotationGet());
-        this._objMov2.moveParamSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true, () => { console.log('landed'); });
+        this._movingObj2.rotationSet(tm_line.rotationGet());
+        this._movingObj2.moveParamSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true, () => { console.log('landed'); });
 
-        this._tickPlay.reserveBy(2, (() => {
+        this._tickPlay.reserveOnTime(2, (() => {
             if(log.detail) { console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime()); }
 
             let idx = this._clickLineArr.findIndex((v, i, a) => v === tm_line);

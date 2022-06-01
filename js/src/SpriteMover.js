@@ -3,10 +3,52 @@ import Phaser from 'phaser'
 import { vec2_2_str } from './lib_gametype';
 import { log } from './log';
 
-export class ObjectMover
+//=====================================================================================================================
+
+/** 오브젝트 회전시키는 로테이터 믹스인 */
+let SpriteRotator =
+{
+    /** @type {number} 기본 회전 상태 */
+    _rotationCorrection: 0,
+
+    /** @param {number} rad - 기본회전상태. 0도는 오른쪽(1,0) 방향인데 이미지의 회전상태값을 저장해둔다. */
+    rotationCorrectionSet(rad)
+    {
+        this._rotationCorrection = rad;
+        console.log('spr:',this._sprite.name, ':Rotation ',this._sprite.rotation.toFixed(4));
+        // 시계방향 회전인가부네
+        this._sprite.rotation = rad;
+    },
+
+    /** 오브젝트를 회전 시킨다. 오른쪽((1.0))이 0도 기준. 값을 더하면 시계 방향으로 회전된다.
+     * @param {number} rad - 라디언각도값. 페이져는 시계 방향 회전.
+     */
+    rotationSet(rad)
+    {
+        this._sprite.rotation = (this._rotationCorrection + rad);
+    },
+
+    /** @param {number} rad - 라디언각도값, 시계방향 */
+    rotationAdd(rad)
+    {
+        this._sprite.rotation += rad;
+    },
+
+    /** @param {number} rad - 라디언각도값, 반시계방향 */
+    rotationMinus(rad)
+    {
+        this._sprite.rotation -= rad;
+    },
+};
+
+//=====================================================================================================================
+
+/** 스프라이트 움직이는 클래스 : 그냥 생각나는대로 기능 추가하고 있음 */
+export class SpriteMover
 {
     /** @type {Phaser.GameObjects.Image} */
     _sprite = null;
+
 
     /** @type {Phaser.Math.Vector2} */
     _posFrom = new Phaser.Math.Vector2();
@@ -14,13 +56,9 @@ export class ObjectMover
     /** @type {Phaser.Math.Vector2} */
     _posTo = new Phaser.Math.Vector2();
 
-    /** 현재 위치
-     * @type {Phaser.Math.Vector2}
-     */
+    /** @type {Phaser.Math.Vector2} 현재 위치 */
     _posCurrent = new Phaser.Math.Vector2();
 
-    /** @type {number} 기본 회전 상태 */
-    _rotationCorrection = 0;
 
     /** @type {boolean} */
     _moveStart = false;
@@ -32,13 +70,16 @@ export class ObjectMover
     _moveDistance = 0;
 
     /** @type {number} 0~1 사이의 퍼센트 기준으로 #moveSpeed는 몇 %인가? */
-    _movePercentUnit = 0;
+    _movePercentMinStep = 0;
 
     /** @type {number} 0~1 사이의 퍼센트. 현재 이동한 %는? */
-    _movingProgress = 0;
+    _movedPercent = 0;
 
     /** @type {function} [_callWhenFinish] - 움직임 끝났을때 호출할 함수, 형식은 > () => {} */
     _callWhenFinish = null;
+
+    /** @type {function} [_onMovingProc] - 형식은 > (dt:number) => {} */
+    _onMovingProc = this.onMoving_AverageVelocity;
 
     /** @returns {Phaser.GameObjects.Image} */
     spriteGet() {
@@ -48,37 +89,6 @@ export class ObjectMover
     /** @param {Phaser.GameObjects.Image} spriteObj */
     initWith(spriteObj) {
         this._sprite = spriteObj;
-    }
-
-    /**
-     * @param {number} rad - 기본회전상태. 0도는 오른쪽(1,0) 방향인데 이미지의 회전상태값을 저장해둔다.
-     * */
-    rotationCorrectionSet(rad)
-    {
-        this._rotationCorrection = rad;
-        console.log('spr:',this._sprite.name, ':Rotation ',this._sprite.rotation.toFixed(4));
-        // 시계방향 회전인가부네
-        this._sprite.rotation = rad;
-    }
-
-    /** 오브젝트를 회전 시킨다. 오른쪽((1.0))이 0도 기준. 뭔가 대충 맞긴했네.
-     * @param {number} rad - 라디언각도값
-     */
-    rotationSet(rad)
-    {
-        this._sprite.rotation = (this._rotationCorrection + rad);
-    }
-
-    /** @param {number} rad - 라디언각도값, 시계방향 */
-    rotationAdd(rad)
-    {
-        this._sprite.rotation += rad;
-    }
-
-    /** @param {number} rad - 라디언각도값, 반시계방향 */
-    rotationMinus(rad)
-    {
-        this._sprite.rotation -= rad;
     }
 
 
@@ -97,9 +107,9 @@ export class ObjectMover
 
         this._moveSpeed = speed;
         this._moveDistance = this._posTo.clone().subtract(this._posFrom).length();
-        this._movePercentUnit = this._moveSpeed / this._moveDistance;
+        this._movePercentMinStep = this._moveSpeed / this._moveDistance;
 
-        this._movingProgress = 0;
+        this._movedPercent = 0;
 
         if(moveStart) {
             this._moveStart = true;
@@ -122,20 +132,37 @@ export class ObjectMover
         this.moveParamSet(v2s.x, v2s.y, v2e.x, v2e.y, speed, moveStart, func);
     }
 
+
     /** update() 같은 주기 함수에서 호출해줘야 한다.
      * @param {number} dt - unit:sec */
-    onMove(dt)
+    onUpdate(dt)
     {
         if(!this._moveStart) { return; }
 
+        if(this._onMovingProc) {
+            this._onMovingProc(dt); // this._moveSpeed 로 정속 이동
+        }
+
+        if(this._movedPercent >= 1)
+        {
+            this._moveStart = false;
+            if(this._callWhenFinish) {
+                this._callWhenFinish();
+            }
+        }
+    }
+
+    /** this._moveSpeed 로 정속 이동
+     * @param {number} dt - unit:sec */
+    onMoving_AverageVelocity(dt)
+    {
+        // from -> to 방향의 단위 벡터 저장
         let moved_dir = this._posTo.clone().subtract(this._posFrom).normalize();
 
+        this._movedPercent += (this._movePercentMinStep * dt);
+        this._movedPercent = Math.min(1, this._movedPercent);
 
-
-        this._movingProgress += (this._movePercentUnit * dt);
-        this._movingProgress = Math.min(1, this._movingProgress);
-
-        moved_dir.scale(this._movingProgress);
+        moved_dir.scale(this._movedPercent);
 
         this._posCurrent.set(this._posFrom.x + (this._moveDistance * moved_dir.x), this._posFrom.y + (this._moveDistance * moved_dir.y));
         this._sprite.setPosition(this._posCurrent.x, this._posCurrent.y);
@@ -145,16 +172,9 @@ export class ObjectMover
                 'from: ', vec2_2_str(this._posFrom),
                 ' to: ', vec2_2_str(this._posTo),
                 ' cnt: ', vec2_2_str(this._posCurrent),
-                ' progress: ', this._movingProgress]);
-        }
-
-        if(this._movingProgress >= 1)
-        {
-            this._moveStart = false;
-            if(this._callWhenFinish) {
-                this._callWhenFinish();
-            }
+                ' progress: ', this._movedPercent]);
         }
     }
-
 }
+
+Object.assign(SpriteMover.prototype, SpriteRotator);

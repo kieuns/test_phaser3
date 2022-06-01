@@ -1,5 +1,46 @@
 
 
+## Mixin
+
+* https://ko.javascript.info/mixins
+
+함수만 만들어둔 객체를 클래스에 병합하는 기능. 다른 소스에서 ```Mixins: [..``` 어쩌구 하면서 써진 내용에 대한 것.
+
+큰 속성은,
+
+* 클래스가 다른 클래스를 상속 받을 수 있고, 믹스인의 메서드 복사가 가능
+* 믹스인은 클래스에 메서드 복사 가능 (1개 이상)
+* 믹스인끼리 상속 가능
+
+``` javascript
+// 믹스인
+let sayHiMixin = {
+  sayHi() {
+    alert(`Hello ${this.name}`);
+  },
+  sayBye() {
+    alert(`Bye ${this.name}`);
+  }
+};
+
+// 클래스 추가
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+// 메서드 복사
+Object.assign(User.prototype, sayHiMixin);
+
+// 이제 User가 인사를 할 수 있습니다.
+new User("Dude").sayHi(); // Hello Dude!
+```
+
+
+``` javascript
+```
+
+
 
 ## Extra Install : Dat.gui
 
