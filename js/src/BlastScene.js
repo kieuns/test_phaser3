@@ -1,26 +1,33 @@
+// @ts-nocheck
 /* eslint-disable no-unused-vars */
 
+import dat from 'dat.gui';
 import Phaser from 'phaser';
 import { GameData, GameOption } from './lib_common';
 import { XY } from "./lib_gametype";
 import { ResInfo } from "./lib_res";
+import { TickPlay } from './TickPlay';
 
 //=====================================================================================================================
 
 export class BlastScene extends Phaser.Scene
 {
-    static instance = undefined;
+    static inst = undefined;
+
+    /** @type {number} */
+    loading_pv = 0; // 로딩 시간을 저장하는 임시 변수. 이전 항목의 로딩 시간 저장용.
+    /** @type {Phaser.GameObjects.Image} */
+    img_bg = null;
+    /** @type {Phaser.GameObjects.Image} */
+    img_ball = null; // 테스트용 볼 이미지
+
+    /** @type {StageLogic} */
+    stageLogic = null;
 
     constructor()
     {
         super('BlastScene');
-
-        BlastScene.instance = this;
-
-        this.loading_pv = 0; // 로딩 시간을 저장하는 임시 변수. 이전 항목의 로딩 시간 저장용.
-        this.img_bg = null;
-        this.img_ball = null; // 테스트용 볼 이미지
-
+        BlastScene.inst = this;
         console.log(this.constructor.name, "constructor(): done");
     }
 
@@ -37,7 +44,7 @@ export class BlastScene extends Phaser.Scene
         {
             let value = ResInfo.BasicSet[key_str];
             this.load.image(value.key, value.filename);
-            //console.log('img-load: ', value.key, ' : ', value.filename);
+            console.log('img-load: ', value.key, ' : ', value.filename);
         }
 
         console.log("BlastScene:preload(): 終 ", this.time.now);
@@ -48,107 +55,169 @@ export class BlastScene extends Phaser.Scene
         console.log("BlastScene:create(): ", this.cameras.main.width, ", ", this.cameras.main.height);
         console.log("  this.cameras.main.width & height: ", this.cameras.main.width, ", ", this.cameras.main.height);
 
+        dgui.init();
+
         let _scrn_w = this.cameras.main.width;
         let _scrn_h = this.cameras.main.height;
 
         // 배경 이미지를 화면 크기만큼 늘린다.
-        this.img_bg = this.add.image(_scrn_w/2, _scrn_h/2, 'bg-001');
+        this.img_bg = this.add.image(_scrn_w/2, _scrn_h/2, ResInfo.BasicSet.bg.key);
         this.img_bg.setDisplaySize(_scrn_w, _scrn_h);
 
-        this.img_tilebg = this.add.image(0, 0, 'tile-bg-001');
+        // todo: delme
+        this.img_tilebg = this.add.image(ResInfo.Param.default_x, ResInfo.Param.default_y, ResInfo.BasicSet.tile_bg.key);
+
+        // 로직 클래스 준비
+        //
+        this.stageLogic = new StageLogic();
 
         // 스테이지 초기화
         this.stageView = new StageView();
         this.stageView.init();
+
+        //this.stageLogic.start();
     }
 
     /**
      * @param {number} [time] - unit ms
      * @param {number} [delta] - unit ms
      */
-    update(time, delta)
-    {
-    }
+    update(time, delta) { }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//=====================================================================================================================
 
 class StageLogic
 {
+    /** @type {TickPlay} */
+    tickPlay = null;
+
     constructor()
     {
         this.boardSize = new XY(ResInfo.BoardViewSpec.tileXLen, ResInfo.BoardViewSpec.tileYLen);
+        this.tickPlay = new TickPlay(30);
+        this.tickPlay.setUpdateCallback(this.onUpdateByTick.bind(this));
     }
 
-    /** @param {number} dt delta-time */
-    onUpdate(dt)
+    start()
     {
+        this.tickPlay.start();
+    }
+
+    /** @param {number} [tick] */
+    onUpdateByTick(tick)
+    {
+        console.log('StageLogic:updateTick: ', tick);
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//=====================================================================================================================
+
+let JobTodo = {
+    /** 이 타일에서 할일 모아둔 것
+     * { (() => void)[] }
+     * @type {Array<(() => void)>}
+     */
+    jobTodo: [], // 이 타일에서 할일의 모음
+
+    /** @param {(() => void)} [func] */
+    reserveJob(func)
+    {
+        this.jobTodo.push(func);
+    },
+};
+
+/** @class
+ * 블럭의 기본 클래스
+ */
+class ABlockLogicBase
+{
+    bpos = new XY(0,0);
+    wpos = new Phaser.Math.Vector2(0,0);
+}
+Object.assign(ABlockLogicBase.prototype, JobTodo);
+
+class ABlockDraw
+{
+    /** @type {Phaser.GameObjects.Image} */
+    image = null;
+
+    /** @param {string} imageKey */
+    create(imageKey)
+    {
+        this.image = BlastScene.inst.add.image(ResInfo.Param.default_x, ResInfo.Param.default_y, imageKey);
+    }
+}
+Object.assign(ABlockDraw.prototype, JobTodo);
+
+//=====================================================================================================================
+
+class ATileLogic
+{
+}
+Object.assign(ATileLogic.prototype, JobTodo);
 
 /**
  * TileView 변수 형태로 저장
  * @class
  */
-class ATileView
+class ATileView extends Phaser.GameObjects.Image
 {
     /** @type {string} */
-    tileImgKey = null;
-
+    tileImgKey = ResInfo.BasicSet.tile_bg.key;
     /** @type {Phaser.GameObjects.Image} 타일 기본 이미지 */
     image = null;
-
     /** @type {XY} */
     boardPos = null;
-
     /** @type {Phaser.Math.Vector2} */
     screenPos = null;
-
-    objBlock = null;
-
-    /** 이 타일에서 할일 모아둔 것
-     * { (() => void)[] }
-     * @type {Array<(() => void)>}
-     */
-    jobTodo = null; // 이 타일에서 할일의 모음
-
-    constructor()
+    /** 현재 타일에 있는 블럭 */
+    block = null;
+    constructor(scene)
     {
-        this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
-        this.jobTodo = [];
-        //Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
-        //this.setAlpha(0.1, 0,5, 0.5, 0.1);
+        super(scene);
+        Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
+        this.setAlpha(0.1, 0,5, 0.5, 0.1);
     }
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//=====================================================================================================================
 
 class StageView
 {
+    /** @type {StageLogic} */
+    stageLogic = undefined;
+    /** @type {XY} */
+    boardPixelSize = undefined;
+    /** @type {XY} */
+    boardXYLen = undefined;
+    /** @type {XY} */
+    pivotPos = undefined;
+    /** @type {XY} */
+    tilePixelSize = undefined;
+    /** @type {XY} */
+    boardLeftTopWPos = undefined;
+    /** @type {Array<ATileView>} */
+    tileviewArr = undefined;
+    /** @type {Phaser.GameObjects.Group} */
+    tileviewGroup = undefined;
+    /** @type {Array<ABlockDraw>} */
+    blockdrawArr = null;
+
     constructor()
     {
-        this.stageLogic = undefined;
-        this.boardPixelSize = undefined;
-        this.boardXYLen = undefined;
-        this.pivotPos = undefined;
-        this.tilePixelSize = undefined;
-        this.boardLeftTopWPos = undefined;
-
-        this.tileImgArr = undefined;
-        this.tileImgGroup = undefined;
     }
 
     init()
     {
-        this.initViewParams();
-        this.initView();
+        this.allocOnMembers();
+        this.calcViewSize();
         this.makeView();
+
+        this.makeBlock();
     }
 
-    initViewParams()
+    allocOnMembers()
     {
         this.boardPixelSize = new XY();
         this.boardXYLen = new XY();
@@ -156,12 +225,12 @@ class StageView
         this.boardLeftTopWPos = new XY();
         this.tilePixelSize = new XY();
 
-        this.tileImgArr = [];
-        //this.tileImgGroup = BlastScene.instance.add.group({defaultKey: 'tile-bg-001', maxSize:81});
-        //this.tileImgGroup = BlastScene.instance.add.group({classType: ATileView, maxSize:81});
+        this.tileviewArr = [];
+        this.tileviewGroup = BlastScene.inst.add.group({classType: ATileView, maxSize:81});
+        this.blockdrawArr = [];
     }
 
-    initView()
+    calcViewSize()
     {
         this.pivotPos.x = GameOption.ScreenWidth / 2;
         this.pivotPos.y = GameOption.ScreenHeight / 2;
@@ -198,21 +267,67 @@ class StageView
             let xpos = this.boardLeftTopWPos.x;
             for(let xi = 0; xi < this.boardXYLen.x; xi++)
             {
-                // let new_tile_img = this.tileImgGroup.get(xpos, ypos);
-                // if(new_tile_img)
-                // {
-                //     new_tile_img.x = xpos;
-                //     new_tile_img.y = ypos;
-                //     this.tileImgArr.push(new_tile_img);
-                //     //BlastScene.instance.add.image(xpos, ypos, 'tile-bg-001');
-                //     //console.log(xy_2_str(xpos, ypos));
-                // }
-                // else {
-                //     console.warn('no new tile');
-                // }
+                let new_tile_img = this.tileviewGroup.get(xpos, ypos);
+                if(new_tile_img)
+                {
+                    new_tile_img.x = xpos;
+                    new_tile_img.y = ypos;
+                    this.tileviewArr.push(new_tile_img);
+                    //BlastScene.instance.add.image(xpos, ypos, 'tile-bg-001');
+                    //console.log(xy_2_str(xpos, ypos));
+                }
+                else {
+                    console.warn('no new tile');
+                }
                 xpos += this.tilePixelSize.x;
             }
             ypos += this.tilePixelSize.y;
         }
+    }
+
+    makeBlock()
+    {
+        let a = new ABlockDraw();
+        a.create(ResInfo.BasicSet.block_1.key);
+    }
+}
+
+//=====================================================================================================================
+
+class dgui
+{
+    /** @type {dgui} */
+    static instance = null;
+    static init() {
+        dgui.instance = new dgui();
+        dgui.instance.install();
+    }
+
+    /** @type {dat.GUI} */
+    _datGui = null;
+
+    /** dat.GUI 를 특정 돔에 설치한다. */
+    install()
+    {
+        this._datGui = new dat.GUI();
+        const target_dom = document.getElementById('datgui');
+        if (target_dom)
+        {
+            this._datGui.domElement.style.setProperty('position', 'absolute');
+            this._datGui.domElement.style.setProperty('top', '0px');
+            this._datGui.domElement.style.setProperty('left', '0px');
+            target_dom?.appendChild(this._datGui.domElement);
+        }
+        this.buidMenu();
+    }
+
+    // .listen() : 값의 변화를 계속 감시
+    // .onChange( (v) => {} ) : 값이 변할때 호출
+
+    /** 메뉴 빌드 */
+    buidMenu()
+    {
+        let root_folder = this._datGui;
+        let opt1_folder = this._datGui.addFolder('[옵션1]');
     }
 }

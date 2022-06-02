@@ -34,6 +34,9 @@ export var ResInfo =
         tileXLen:9, tileYLen:9,
         tilePixelWidth:70, tilePixelHeight:70
     },
+    Param: {
+        default_x : 100, default_y : 100,
+    },
     //
     // FORMAT :: (Title) :{ key:'bg-001', filename:'assets/background.jpg', displayWidth:00, displayHeight:00 },
     //
