@@ -17,11 +17,14 @@ export class TickPlay
     /** @type {number} */
     _tickPerSec = 10;
 
-    /** @type {number} 게임이 끝나는 틱 */
+    /** @type {number} 루프가 끝난 시점의 _tickNowIndex */
     _tickCleared = -1;
 
-    /** @type {number} 게임이 끝나는 시간 */
-    _expectEndTime = 0;
+    /** @type {number} 루프를 끝나는 시간 */
+    _expectEndTime = -1;
+
+    /** @type {number} 루프를 끝낼 틱 */
+    _expectEndTick = -1;
 
     /** @type {number} setInterval() 리턴값 */
     _tickTimerId = null;
@@ -41,10 +44,17 @@ export class TickPlay
     getNowAsTime() { return this._tickNowIndex * this._tickPerSec; }
 
 
-    /** @param {number} expectEndTime unit:sec */
-    start(expectEndTime)
+    /** @param {number} expectEndTick (unit:tick) */
+    start(expectEndTick, isTime = false)
     {
-        this._expectEndTime = this._tickPerSec * (expectEndTime ? expectEndTime : (12*60));
+        if(isTime) {
+            this._expectEndTick = (expectEndTick / (1000/this._tickPerSec));
+            this._expectEndTime = expectEndTick;
+        }
+        else {
+            this._expectEndTick = expectEndTick;
+            this._expectEndTime = this._tickPerSec * (expectEndTick ? expectEndTick : (12*60));
+        }
         this._tickNowIndex = 0;
         this._workTodo = [];
         this._tickTimerId = setInterval( this.onTick.bind(this), 1000 / this._tickPerSec );
@@ -82,29 +92,36 @@ export class TickPlay
     }
 
     /**
-     * @param {number} tick - 예약 타이밍. 틱 기반.
-     * @param {function} callback - 호출 함수
+     * @param {number} [tick] - 예약 타이밍. 틱 기반.
+     * @param {function} [callback] - 호출 함수
      */
     reserveOnTick(tick, callback)
     {
         if(!this._loopStarted) { console.warn('TickPlay : not started'); return; }
-        let nx_tick = Math.floor(tick * this._tickPerSec);
+        // prev > Math.floor(tick * this._tickPerSec);
+        let nx_tick = tick;
         this._workTodo.push({ tick:nx_tick, func:callback, delete:false });
     }
 
     /**
-     * @param {number} time - 예약 시간, 지금에서 얼마 뒤. ms
-     * @param {function} callback - 호출 함수
-     * @param {number} repeatCnt
+     * @param {number} [tickFuture] - 예약 타이밍. 틱 기반.
+     * @param {function} [callback] - 호출 함수
      */
-    reserveOnTime(time, callback, repeatCnt = 1)
+    reserveOnNextTick(tickFuture, callback)
     {
-        if(!this._loopStarted) {
-            console.warn('TickPlay : not started');
-            return;
-        }
+        this.reserveOnTick(this._tickNowIndex + tickFuture, callback);
+    }
 
-        let repeat_time = time;
+    /**
+     * @param {number} [time] - 예약 시간, 지금에서 얼마 뒤. ms
+     * @param {function} [callback] - 호출 함수
+     * @param {number} [repeatCnt]
+     */
+    reserveOnTime(time, callback, repeatCnt = 1, repeatTimeDur)
+    {
+        if(!this._loopStarted) { console.warn('TickPlay : not started'); return; }
+
+        let repeat_time = repeatTimeDur ? repeatTimeDur : time;
 
         for(let i = 0; i < repeatCnt; i++)
         {
