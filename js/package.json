@@ -9,7 +9,7 @@
 		"t_bulma": "parcel src/t_bulma_test.html -p 8000",
 		"t_main": "parcel src/main.html -p 8000",
 		"t_testany": "parcel src/t_test_any.html -p 8000",
-		"start": "parcel src/index.html -p 8000"
+		"Blast": "parcel src/blast_scene.html -p 8000"
 	},
 	"scripts.bak": {
 		"build": "parcel build src/index.html --out-dir dist",

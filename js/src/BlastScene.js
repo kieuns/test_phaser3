@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 
-import Phaser from 'phaser'
-import { XY } from "./lib_gametype.js";
-import { GameData, GameOption } from "./main.js";
-import { ResInfo } from "./lib_res.js";
+import Phaser from 'phaser';
+import { GameData, GameOption } from './lib_common';
+import { XY } from "./lib_gametype";
+import { ResInfo } from "./lib_res";
 
 //=====================================================================================================================
 
@@ -33,17 +33,11 @@ export class BlastScene extends Phaser.Scene
             'color: #fff; background: #000', 'color: #000; background: #ffffff',
             GameData.stat.gtimeAppLoadingStart]);
 
-        // this.load.image('bg-001', 'assets/background.jpg');
-        // this.load.image('tile-bg-001', 'assets/block_glow.png');
-
-        let basic_set = ResInfo.BasicSet;
-
-        for(let key_str in basic_set)
+        for(let key_str in ResInfo.BasicSet)
         {
-            console.log(key_str);
-            let value = basic_set[key_str];
-            //this.load.image('bg-001', 'assets/background.jpg');
+            let value = ResInfo.BasicSet[key_str];
             this.load.image(value.key, value.filename);
+            //console.log('img-load: ', value.key, ' : ', value.filename);
         }
 
         console.log("BlastScene:preload(): 終 ", this.time.now);
@@ -51,10 +45,8 @@ export class BlastScene extends Phaser.Scene
 
     create()
     {
-        {
-            console.log("BlastScene:create(): ", this.cameras.main.width, ", ", this.cameras.main.height);
-            console.log("  this.cameras.main.width & height: ", this.cameras.main.width, ", ", this.cameras.main.height);
-        }
+        console.log("BlastScene:create(): ", this.cameras.main.width, ", ", this.cameras.main.height);
+        console.log("  this.cameras.main.width & height: ", this.cameras.main.width, ", ", this.cameras.main.height);
 
         let _scrn_w = this.cameras.main.width;
         let _scrn_h = this.cameras.main.height;
@@ -99,40 +91,37 @@ class StageLogic
 /**
  * TileView 변수 형태로 저장
  * @class
- * @arguments Phaser.GameObjects.Image
  */
-// @ts-ignore
-var ATileView = new Phaser.Class({
-    Extends: Phaser.GameObjects.Image,
-    initialize:
-    function ATileView(scene)
+class ATileView
+{
+    /** @type {string} */
+    tileImgKey = null;
+
+    /** @type {Phaser.GameObjects.Image} 타일 기본 이미지 */
+    image = null;
+
+    /** @type {XY} */
+    boardPos = null;
+
+    /** @type {Phaser.Math.Vector2} */
+    screenPos = null;
+
+    objBlock = null;
+
+    /** 이 타일에서 할일 모아둔 것
+     * { (() => void)[] }
+     * @type {Array<(() => void)>}
+     */
+    jobTodo = null; // 이 타일에서 할일의 모음
+
+    constructor()
     {
         this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
-        Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
-        // @ts-ignore
-        this.setAlpha(0.1, 0,5, 0.5, 0.1);
-        this.boardPos = undefined;
-        this.screenPos = undefined;
-        this.objBlock = undefined;
-        this.jobTodo = undefined; // 이 타일에서 할일의 모음
+        this.jobTodo = [];
+        //Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
+        //this.setAlpha(0.1, 0,5, 0.5, 0.1);
     }
-});
-
-// function ATileView(scene) {}
-// ATileView.prototype = Phaser.GameObjects.Image;
-// ATileView.prototype.init = function(scene)
-// {
-//     this.tileImgKey = ResInfo.BasicSet.tile_bg.key;
-//     Phaser.GameObjects.Image.call(this, scene, 0, 0, this.tileImgKey);
-//     this.setAlpha(0.1, 0,5, 0.5, 0.1);
-//     this.boardPos = undefined;
-//     this.screenPos = undefined;
-//     this.objBlock = undefined;
-//     this.jobTodo = undefined; // 이 타일에서 할일의 모음
-// }
-// ATileView.prototype.test_func = function() {
-//     console.log('ATileView.test()');
-// }
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,7 +158,7 @@ class StageView
 
         this.tileImgArr = [];
         //this.tileImgGroup = BlastScene.instance.add.group({defaultKey: 'tile-bg-001', maxSize:81});
-        this.tileImgGroup = BlastScene.instance.add.group({classType: ATileView, maxSize:81});
+        //this.tileImgGroup = BlastScene.instance.add.group({classType: ATileView, maxSize:81});
     }
 
     initView()
@@ -209,18 +198,18 @@ class StageView
             let xpos = this.boardLeftTopWPos.x;
             for(let xi = 0; xi < this.boardXYLen.x; xi++)
             {
-                let new_tile_img = this.tileImgGroup.get(xpos, ypos);
-                if(new_tile_img)
-                {
-                    new_tile_img.x = xpos;
-                    new_tile_img.y = ypos;
-                    this.tileImgArr.push(new_tile_img);
-                    //BlastScene.instance.add.image(xpos, ypos, 'tile-bg-001');
-                    //console.log(xy_2_str(xpos, ypos));
-                }
-                else {
-                    console.warn('no new tile');
-                }
+                // let new_tile_img = this.tileImgGroup.get(xpos, ypos);
+                // if(new_tile_img)
+                // {
+                //     new_tile_img.x = xpos;
+                //     new_tile_img.y = ypos;
+                //     this.tileImgArr.push(new_tile_img);
+                //     //BlastScene.instance.add.image(xpos, ypos, 'tile-bg-001');
+                //     //console.log(xy_2_str(xpos, ypos));
+                // }
+                // else {
+                //     console.warn('no new tile');
+                // }
                 xpos += this.tilePixelSize.x;
             }
             ypos += this.tilePixelSize.y;

@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-import Phaser from 'phaser'
+import Phaser from 'phaser';
 
 /** xy를 사용하기 위한 간단한 클래스. Phaser.Math.Vector2 대용 */
 class XY

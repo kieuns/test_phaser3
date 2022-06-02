@@ -1,5 +1,33 @@
 
-
+/**
+ * @typedef {Object} ResInfo
+ * @property {object} BoardViewSpec
+ * @property {number} BoardViewSpec.tileXLen
+ * @property {number} BoardViewSpec.tileYLen
+ * @property {number} BoardViewSpec.tilePixelWidth
+ * @property {number} BoardViewSpec.tilePixelHeight
+ * @property {object} BasicSet
+ * @property {object} BasicSet.bg
+ * @property {object} BasicSet.tile_bg
+ * @property {object} BasicSet.block_1
+ * @property {string} BasicSet.block_1.key
+ * @property {string} BasicSet.block_1.filename
+ * @property {object} BasicSet.block_2
+ * @property {string} BasicSet.block_2.key
+ * @property {string} BasicSet.block_2.filename
+ * @property {object} BasicSet.block_3
+ * @property {string} BasicSet.block_3.key
+ * @property {string} BasicSet.block_3.filename
+ * @property {object} BasicSet.block_4
+ * @property {string} BasicSet.block_4.key
+ * @property {string} BasicSet.block_4.filename
+ * @property {object} BasicSet.block_5
+ * @property {string} BasicSet.block_5.key
+ * @property {string} BasicSet.block_5.filename
+ * @property {object} BasicSet.block_6
+ * @property {string} BasicSet.block_6.key
+ * @property {string} BasicSet.block_6.filename
+ */
 export var ResInfo =
 {
     BoardViewSpec: {
