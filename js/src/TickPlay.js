@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { log } from "./log";
 
 /**
@@ -38,22 +39,32 @@ export class TickPlay
      */
     _workTodo = null;
 
+    /** @type {((tick) => {})} */
+    _onUpdate = null;
 
     getNowTick() { return this._tickNowIndex; }
 
     getNowAsTime() { return this._tickNowIndex * this._tickPerSec; }
 
+    /** @param {((tick) => {})} [func] */
+    setUpdateCallback(func) { this._onUpdate = func; }
+
+    constructor(tickPerSec = 15)
+    {
+        this._tickPerSec = tickPerSec;
+    }
 
     /** @param {number} expectEndTick (unit:tick) */
     start(expectEndTick, isTime = false)
     {
+        expectEndTick = (expectEndTick ? expectEndTick : (12*60));
         if(isTime) {
             this._expectEndTick = (expectEndTick / (1000/this._tickPerSec));
             this._expectEndTime = expectEndTick;
         }
         else {
             this._expectEndTick = expectEndTick;
-            this._expectEndTime = this._tickPerSec * (expectEndTick ? expectEndTick : (12*60));
+            this._expectEndTime = this._tickPerSec * expectEndTick;
         }
         this._tickNowIndex = 0;
         this._workTodo = [];
@@ -89,6 +100,8 @@ export class TickPlay
             }
         }
         this._workTodo = tmp_ar;
+
+        this._onUpdate && this._onUpdate(this._tickNowIndex);
     }
 
     /**
