@@ -107,7 +107,7 @@ class StageLogic
     /** @param {number} [tick] */
     onUpdateByTick(tick)
     {
-        console.log('StageLogic:updateTick: ', tick);
+        //console.log('StageLogic:updateTick: ', tick);
     }
 }
 
