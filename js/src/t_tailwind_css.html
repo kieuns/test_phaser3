@@ -27,17 +27,117 @@
   <script src="./lib/dat.tui-0.7.7/dat.gui.min.js"></script>
   <script src="./lib/phaser-3.55.2/phaser.js"></script>
   -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+  <!-- <script type="importmap">
+    {
+      "imports": {
+        "phaser": './../node_modules/phaser/dist/phaser.js'
+      }
+    }
+  </script> -->
+  <script src="./../node_modules/phaser/dist/phaser.js"></script>
+
   <title>TailWindCSS</title>
 </head>
 
 <body>
-  <div class="frontlayout">
-    <div>
-      <strong>Andrew Alfred</strong>
-      <span>Technical advisor</span>
-    </div>
-  </div>
+
+  <div id="game_main"></div>
 </body>
 
 </html>
+
+
+<!--
+  =======================================================================================================================
+  Phaser Script
+  =======================================================================================================================
+-->
+<script>
+  class TestScene extends Phaser.Scene
+  {
+    moving = {
+      /** @type {Phaser.GameObject.Images} */
+      img: null,
+      /** @type {Phaser.Math.Vector2} */
+      destPos: new Phaser.Math.Vector2(0, 0),
+      /** @type {Phaser.Math.Vector2} */
+      prevPos: new Phaser.Math.Vector2(0, 0),
+      percentT: 0,
+      nowRotation: 0,
+      nextRotation: 0,
+      MovingPixelPerSec:80,
+      MovingPercentPerSec:0
+    };
+    constructor() {
+      super();
+    }
+    preload() {
+      this.load.image('box', 'assets/box.png');
+    }
+    create() {
+      let cx = this.cameras.main.width / 2;
+      let cy = this.cameras.main.height / 2;
+
+      const button = document.createElement('div');
+      button.className = 'button is-primary';
+      button.innerText = 'CLICK';
+      this.add.dom(cx-100, cy-100, button);
+
+      this.moving.img = this.add.image(cx,cy,'box');
+      this.resetMoveParam();
+    }
+    resetMoveParam()
+    {
+      this.moving.prevPos.x = this.moving.img.x;
+      this.moving.prevPos.y = this.moving.img.y;
+
+      let img_half_w = this.moving.img.width/2;
+      let img_half_h = this.moving.img.height/2;
+
+      this.moving.destPos.x = Phaser.Math.Between(img_half_w, this.cameras.main.width-img_half_w);
+      this.moving.destPos.y = Phaser.Math.Between(img_half_h, this.cameras.main.height-img_half_h);
+
+      //(Math.PI/2) 오른쪽이 0도이므로 돌려진 값을 더한다.
+      this.moving.nextRotation = this.moving.destPos.clone().subtract(this.moving.prevPos).angle() + (Math.PI/2);
+      //this.moving.img.setRotation(this.moving.nextRotation);
+
+      let dist = this.moving.destPos.distance(this.moving.img);
+      this.moving.MovingPercentPerSec = this.moving.MovingPixelPerSec / dist;
+
+      console.log('NewPos: dist-pixel:', dist, ' : Percent-Unit: ', this.moving.MovingPercentPerSec);
+
+      this.moving.percentT = 0;
+    }
+    update(time, dt) {
+      let ms_dt = (dt / 1000);
+
+      let new_rotation = Phaser.Math.RotateTo(this.moving.nextRotation, this.moving.img.rotation);
+      //console.log(new_rotation, this.moving.img.rotation, this.moving.nextRotation);
+      this.moving.img.rotation = new_rotation;
+
+      let nx = this.moving.prevPos.clone().lerp(this.moving.destPos, this.moving.percentT);
+      this.moving.img.x = nx.x;
+      this.moving.img.y = nx.y;
+
+      this.moving.percentT += (ms_dt * this.moving.MovingPercentPerSec);
+      //console.log('MovT: ', this.moving.percentT);
+
+      if(this.moving.percentT > 1) {
+        this.resetMoveParam();
+      }
+    }
+  }
+
+  const config = {
+    type: Phaser.AUTO,
+    dom: { createContainer: true }, // 페이져에서 돔 엘리먼트 사용하게 하기
+    parent: 'game_main',
+    width: 600,
+    height: 800,
+    backgroundColor: '#2d2d2d',
+    scene: [TestScene]
+  };
+  const game = new Phaser.Game(config);
+</script>
+

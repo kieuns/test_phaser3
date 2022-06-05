@@ -143,6 +143,14 @@
 
 
 <script>
+
+  var MainModal = new class {
+    constructor() {
+      console.log('MainModal');
+    }
+  }();
+
+
   document.addEventListener('DOMContentLoaded', () => {
     // Functions to open and close a modal
     function openModal($el) {
@@ -196,7 +204,6 @@
   Phaser Script
   =======================================================================================================================
 -->
-
 <script>
   class TestScene extends Phaser.Scene
   {
@@ -206,10 +213,12 @@
       /** @type {Phaser.Math.Vector2} */
       destPos: new Phaser.Math.Vector2(0, 0),
       /** @type {Phaser.Math.Vector2} */
-      nowPos: new Phaser.Math.Vector2(0, 0),
+      prevPos: new Phaser.Math.Vector2(0, 0),
       percentT: 0,
       nowRotation: 0,
-      nextRotation: 0
+      nextRotation: 0,
+      MovingPixelPerSec:80,
+      MovingPercentPerSec:0
     };
     constructor() {
       super();
@@ -231,8 +240,8 @@
     }
     resetMoveParam()
     {
-      this.moving.nowPos.x = this.moving.img.x;
-      this.moving.nowPos.y = this.moving.img.y;
+      this.moving.prevPos.x = this.moving.img.x;
+      this.moving.prevPos.y = this.moving.img.y;
 
       let img_half_w = this.moving.img.width/2;
       let img_half_h = this.moving.img.height/2;
@@ -241,23 +250,29 @@
       this.moving.destPos.y = Phaser.Math.Between(img_half_h, this.cameras.main.height-img_half_h);
 
       //(Math.PI/2) 오른쪽이 0도이므로 돌려진 값을 더한다.
-      this.moving.nextRotation = this.moving.destPos.clone().subtract(this.moving.nowPos).angle() + (Math.PI/2);
+      this.moving.nextRotation = this.moving.destPos.clone().subtract(this.moving.prevPos).angle() + (Math.PI/2);
       //this.moving.img.setRotation(this.moving.nextRotation);
+
+      let dist = this.moving.destPos.distance(this.moving.img);
+      this.moving.MovingPercentPerSec = this.moving.MovingPixelPerSec / dist;
+
+      console.log('NewPos: dist-pixel:', dist, ' : Percent-Unit: ', this.moving.MovingPercentPerSec);
 
       this.moving.percentT = 0;
     }
     update(time, dt) {
-      let ms_dt = dt / 1000;
+      let ms_dt = (dt / 1000);
 
       let new_rotation = Phaser.Math.RotateTo(this.moving.nextRotation, this.moving.img.rotation);
       //console.log(new_rotation, this.moving.img.rotation, this.moving.nextRotation);
       this.moving.img.rotation = new_rotation;
 
-      this.moving.nowPos.lerp(this.moving.destPos, this.moving.percentT);
-      this.moving.img.x = this.moving.nowPos.x;
-      this.moving.img.y = this.moving.nowPos.y;
+      let nx = this.moving.prevPos.clone().lerp(this.moving.destPos, this.moving.percentT);
+      this.moving.img.x = nx.x;
+      this.moving.img.y = nx.y;
 
-      this.moving.percentT += ms_dt;
+      this.moving.percentT += (ms_dt * this.moving.MovingPercentPerSec);
+      //console.log('MovT: ', this.moving.percentT);
 
       if(this.moving.percentT > 1) {
         this.resetMoveParam();
@@ -276,4 +291,3 @@
   };
   const game = new Phaser.Game(config);
 </script>
-
