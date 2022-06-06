@@ -21,9 +21,9 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ourcade/phaser3-parcel-template.git"
+		"url": ""
 	},
-	"homepage": "https://github.com/ourcade/phaser3-parcel-template",
+	"homepage": "",
 	"devDependencies": {
 		"@babel/core": "^7.10.5",
 		"@babel/plugin-proposal-class-properties": "^7.10.4",
