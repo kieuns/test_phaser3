@@ -75,7 +75,7 @@
       super();
     }
     preload() {
-      this.load.image('box', 'assets/box.png');
+      this.load.image('box', 'assets/missile_a.png');
     }
     create() {
       let cx = this.cameras.main.width / 2;
@@ -87,6 +87,7 @@
       this.add.dom(cx-100, cy-100, button);
 
       this.moving.img = this.add.image(cx,cy,'box');
+      this.moving.img.setScale(0.3);
       this.resetMoveParam();
     }
     resetMoveParam()
