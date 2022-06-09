@@ -115,3 +115,29 @@ export class ClickedLine
 }
 
 //=====================================================================================================================
+
+/**
+ * @param {Phaser.GameObjects.Graphics} [graphics]
+ * @param {Phaser.Geom.Line} [lineGeom]
+ * @param {number} [x1]
+ * @param {number} [y1]
+ * @param {number} [x2]
+ * @param {number} [y2]
+ * @param {number} [lineSize]
+ * @param {number} [lineColor]
+ * @param {number} [lineAlpha]
+ */
+export function drawLine(graphics, lineGeom, x1, y1, x2, y2, lineSize, lineColor, lineAlpha)
+{
+    // sample : this._lineStyle = { fillStyle:{color:0x999999, size:1, alpha:1.0 } };
+    const line_size = lineSize ? lineSize : 1;
+    const line_color = lineColor ? lineColor : 0x999999;
+    const line_alpha = lineAlpha ? lineAlpha : 1.0;
+    //graphics.clear();
+    graphics.lineStyle(this._lineStyle.fillStyle.size, this._lineStyle.fillStyle.color, this._lineStyle.fillStyle.alpha);
+    lineGeom.x1 = x1;
+    lineGeom.y1 = y1;
+    lineGeom.x2 = x2;
+    lineGeom.y2 = y2;
+    graphics.strokeLineShape(lineGeom);
+}

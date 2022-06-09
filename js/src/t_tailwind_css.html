@@ -73,12 +73,14 @@
     };
     constructor() {
       super();
+      this._lineStyle = { fillStyle:{color:0x999999, size:1, alpha:1.0 } };
     }
     preload() {
       this.load.image('box', 'assets/missile_a.png');
     }
     create() {
       this.graphics = this.add.graphics();
+      this._lineGeom = new Phaser.Geom.Line(0, 0, 0, 0);
 
       let cx = this.cameras.main.width / 2;
       let cy = this.cameras.main.height / 2;
@@ -132,8 +134,13 @@
         this.resetMoveParam();
       }
 
-      this.graphic.lineStyle(this._lineStyle.fillStyle.size, this._lineStyle.fillStyle.color, this._lineStyle.fillStyle.alpha);
-      graphic.strokeLineShape(this._lineGeom);
+      this.graphics.clear();
+      this.graphics.lineStyle(this._lineStyle.fillStyle.size, this._lineStyle.fillStyle.color, this._lineStyle.fillStyle.alpha);
+      this._lineGeom.x1 = nx.x;
+      this._lineGeom.y1 = nx.y;
+      this._lineGeom.x2 = this.moving.destPos.x;
+      this._lineGeom.y2 = this.moving.destPos.y;
+      this.graphics.strokeLineShape(this._lineGeom);
 
     }
   }
