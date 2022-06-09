@@ -66,6 +66,7 @@ export class TickTestScene extends Phaser.Scene
 
         this._objMov2 = new SpriteMover();
         this._objMov2.initWith(this.add.image(150, 150, 'missile'));
+        // @ts-ignore
         this._objMov2.rotationCorrectionSet(Math.PI/2); // 90'
 
         // this._tickPlay.reserveBy(0.1, () => {
@@ -100,6 +101,7 @@ export class TickTestScene extends Phaser.Scene
      * @param {number} time - unit ms
      * @param {number} delta - unit ms
      */
+    // @ts-ignore
     update(time, delta)
     {
         this.graphics.clear();
@@ -107,8 +109,10 @@ export class TickTestScene extends Phaser.Scene
             this._clickedLine.onDraw(this.graphics, delta);
         }
         // @ts-ignore
+        // @ts-ignore
         this._clickLineArr.forEach((item, index, array) => item.onDraw(this.graphics, delta) );
 
+        // @ts-ignore
         this._objMov1.rotationAdd(2 * ((delta/1000)));
         this._objMov2.onUpdate(delta);
     }
@@ -151,6 +155,7 @@ export class TickTestScene extends Phaser.Scene
 
     /** 마우스가 캔바스를 벗어나면 호출
      * @param {Phaser.Input.Pointer} pointer */
+    // @ts-ignore
     onCanvasOut(pointer)
     {
         if(this._clickedLine || this._mouseDown) {
@@ -189,6 +194,7 @@ export class TickTestScene extends Phaser.Scene
         this._clickedLine.updateEndPosition(x, y);
     }
 
+    // @ts-ignore
     closeMouseInputCapture(ptx, pty)
     {
         this._mouseDown = false;
@@ -201,12 +207,15 @@ export class TickTestScene extends Phaser.Scene
         let tm_line = this._clickedLine;
         this._clickedLine = null;
 
+        // @ts-ignore
         this._objMov2.rotationSet(tm_line.rotationGet());
         this._objMov2.moveParamSet2(tm_line.line.getPointA(), tm_line.line.getPointB(), 5, true, () => { console.log('landed'); });
 
+        // @ts-ignore
         this._tickPlay.reserveOnTime(2, (() => {
             if(log.detail) { console.log('ReserveWork : tick: ', this._tickPlay.getNowTick(), ', ', this._tickPlay.getNowAsTime()); }
 
+            // @ts-ignore
             let idx = this._clickLineArr.findIndex((v, i, a) => v === tm_line);
             if(idx !== -1) {
                 this._clickLineArr.splice(idx, 1);

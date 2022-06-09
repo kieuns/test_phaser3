@@ -78,6 +78,8 @@
       this.load.image('box', 'assets/missile_a.png');
     }
     create() {
+      this.graphics = this.add.graphics();
+
       let cx = this.cameras.main.width / 2;
       let cy = this.cameras.main.height / 2;
 
@@ -95,11 +97,11 @@
       this.moving.prevPos.x = this.moving.img.x;
       this.moving.prevPos.y = this.moving.img.y;
 
-      let img_half_w = this.moving.img.width/2;
-      let img_half_h = this.moving.img.height/2;
+      let img_half_w = this.moving.img.displayWidth/2;
+      let img_half_h = this.moving.img.displayHeight/2;
 
-      this.moving.destPos.x = Phaser.Math.Between(img_half_w, this.cameras.main.width-img_half_w);
-      this.moving.destPos.y = Phaser.Math.Between(img_half_h, this.cameras.main.height-img_half_h);
+      this.moving.destPos.x = Phaser.Math.Between(img_half_w, this.cameras.main.displayWidth-img_half_w);
+      this.moving.destPos.y = Phaser.Math.Between(img_half_h, this.cameras.main.displayHeight-img_half_h);
 
       //(Math.PI/2) 오른쪽이 0도이므로 돌려진 값을 더한다.
       this.moving.nextRotation = this.moving.destPos.clone().subtract(this.moving.prevPos).angle() + (Math.PI/2);
@@ -129,6 +131,10 @@
       if(this.moving.percentT > 1) {
         this.resetMoveParam();
       }
+
+      this.graphic.lineStyle(this._lineStyle.fillStyle.size, this._lineStyle.fillStyle.color, this._lineStyle.fillStyle.alpha);
+      graphic.strokeLineShape(this._lineGeom);
+
     }
   }
 
