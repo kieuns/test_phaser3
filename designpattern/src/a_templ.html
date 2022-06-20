@@ -1,0 +1,41 @@
+<!DOCTYPE html><html>
+<head>
+
+<!-- no cache -->
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Expires" CONTENT="-1">
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="keywords" content="phaser3">
+  <meta name="description" content="">
+  <!-- 나중에 되살리자
+  <meta name="full-screen" content="yes" />
+  <meta name="screen-orientation" content="portrait" />
+  -->
+  <style type="text/css">
+    body { padding: 0px; margin: 0px; background-color: #000000; }
+    #game_main { width: 100vw; height: 100vh; } /* 보이는 화면 크기에 맞추도록. 뷰포트(vw, vh)값을 설정 */
+  </style>
+
+  <!--
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.54.0/dist/phaser.js"></script>
+  <script src="./lib/dat.tui-0.7.7/dat.gui.min.js"></script>
+  <script src="./lib/phaser-3.55.2/phaser.js"></script>
+  -->
+  <title>a_templ</title>
+</head>
+
+<body>
+  <div id="bkgnd">
+    <div id="datgui"></div>
+    <!-- <div id="game_main" style="display: flex; justify-content: center;"> -->
+    <div id="game_main">
+      <script>var argvStartSceneName='a_templ';</script> <!-- blast_scene, curve_test_scene -->
+      <script src="./main.ts"></script>
+    </div>
+  </div>
+</body>
+
+</html>
