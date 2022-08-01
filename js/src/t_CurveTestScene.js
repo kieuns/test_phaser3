@@ -1,5 +1,9 @@
+// @ts-nocheck
 /* eslint-disable no-unused-vars */
 import Phaser from 'phaser'
+import { TickPlay } from './TickPlay';
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // class doc
 // - graphics : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.Graphics.html
@@ -37,15 +41,25 @@ sprite.setInteractive();
 sprite.on('pointerdown', callback, context);
 */
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 export class CurveTestScene extends Phaser.Scene
 {
+    /** @type {CurveTestScene} */
     static instance = undefined;
+
+    /** @type {TickPlay} */
+    _tickPlay = null;
+
+    /** @type {DebugTextButton} */
+    _dbgTxtBtn = null;
 
     constructor()
     {
         super('CurveTestScene');
         CurveTestScene.instance = this;
 
+        /** @type {Phaser.GameObjects.Graphics} */
         this.graphics = undefined;
 
         this.lineDataArr = undefined;
@@ -55,6 +69,8 @@ export class CurveTestScene extends Phaser.Scene
         this.dotDataArr = undefined;
         this.dotObjIndex = 0;
         this.dotObjArr = undefined;
+
+        this._tickPlay = new TickPlay();
         console.log(this.constructor.name, ': done');
     }
 
@@ -87,6 +103,13 @@ export class CurveTestScene extends Phaser.Scene
             gameObject.y = dragY;
         });
 
+        this._dbgTxtBtn = new DebugTextButton();
+        this._dbgTxtBtn.init(this, "DEUBG btn");
+        this._dbgTxtBtn.setClickCallback(() => {
+            console.log('onclick - onclick');
+        });
+
+        this._tickPlay.start();
     }
 
     getLine()
@@ -152,3 +175,39 @@ export class CurveTestScene extends Phaser.Scene
     }
 }
 
+class DebugTextButton
+{
+    /** @type {Phaser.GameObjects.Text} */
+    _text = null;
+
+    /** @type {() => void} */
+    _onClick = null;
+
+    /**
+     * @param {Phaser.Scene} scene
+     * @param {string} text
+     */
+    init(scene, text, x, y, style, onClickResponse)
+    {
+        x = x ? x : 0;
+        y = y ? y : 0;
+        style = style ? style : { color: '#00ff00' };
+
+        if(onClickResponse) {
+            this._onClick = onClickResponse;
+        }
+
+        this._text = scene.add.text(x, y, text);
+        this._text.setInteractive();
+
+        this._text.on('pointerdown', () => {
+            console.log('on click');
+            this._onClick && this._onClick();
+        });
+    }
+
+    setClickCallback(onClickResponse) 
+    {
+        this._onClick = onClickResponse;
+    }
+}
