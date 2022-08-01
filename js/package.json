@@ -4,14 +4,14 @@
 	"description": "A template project for Phaser 3 using Parceljs",
 	"scripts": {
 		"t_objectmove": "parcel src/t_object_move.html -p 8000",
-		"t_tickplay": "parcel src/t_tick_test.html -p 8000",
-		"t_curve": "parcel src/t_curve_test.html -p 8000",
-		"t_tailwind": "parcel src/t_tailwind_css.html -p 8000",
-		"t_main": "parcel src/main.html -p 8000",
-		"t_testany": "parcel src/t_test_any.html -p 8000",
-		"Blast": "parcel src/blast_scene.html -p 8000",
-		"t_Three.js": "parcel src/t_threejs.html -p 8000",
-		"t_bulma": "parcel src/t_bulma_test.html -p 8000"
+		"t_tickplay"	: "parcel src/t_tick_test.html -p 8000",
+		"t_curve"			: "parcel src/t_curve_test.html -p 8000",
+		"t_tailwind"	: "parcel src/t_tailwind_css.html -p 8000",
+		"t_main"			: "parcel src/main.html -p 8000",
+		"t_testany"		: "parcel src/t_test_any.html -p 8000",
+		"Blast"				: "parcel src/blast_scene.html -p 8000",
+		"t_Three.js"	: "parcel src/t_threejs.html -p 8000",
+		"t_bulma"			: "parcel src/t_bulma_test.html -p 8000"
 	},
 	"scripts.bak": {
 		"build": "parcel build src/index.html --out-dir dist",

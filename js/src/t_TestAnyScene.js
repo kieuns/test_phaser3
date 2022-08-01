@@ -12,7 +12,7 @@ export class TestAnyScene extends Phaser.Scene
 
     constructor()
     {
-        super('TestAny');
+        super('TestAnyScene');
         TestAnyScene.instance = this;
         console.log(this.constructor.name, "constructor(): done");
     }

@@ -4,7 +4,6 @@
 
 import dat from 'dat.gui';
 import Phaser from 'phaser'
-import { vec2_2_str, xy_2_str } from './lib_gametype';
 import { ClickedLine } from './lib_geom';
 import { log } from './log';
 import { SpriteMover } from './SpriteMover';
