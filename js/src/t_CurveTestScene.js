@@ -104,11 +104,12 @@ export class CurveTestScene extends Phaser.Scene
         });
 
         this._dbgTxtBtn = new DebugTextButton();
-        this._dbgTxtBtn.init(this, "DEUBG btn");
-        this._dbgTxtBtn.setClickCallback(() => {
-            console.log('onclick - onclick');
+        this._dbgTxtBtn.init(this, "[lerp 1 test]", 5, 5, null, () => {
+            //console.log('onclick - onclick');
+            this.run_lerpTest(-5, 20);
         });
 
+        // tick play - start
         this._tickPlay.start();
     }
 
@@ -165,15 +166,74 @@ export class CurveTestScene extends Phaser.Scene
 
             this.graphics.fillStyle(spec.fillStyle.color, spec.fillStyle.alpha);
             this.graphics.fillPointShape(dot, spec.fillStyle.size);
+        }
 
-            //dot.setInteractive();
-            // dot.input.on('pointermove', function(pointer) {
-            //     dot.x = pointer.x;
-            //     dot.y = pointer.y;
-            // });
+        if(this.lerp_1) {
+            if(!this.lerp_1.update(time, delta)) {
+                this.lerp_1 = null;
+            }
         }
     }
+
+    /**
+     * @param {number} p0
+     * @param {number} p1
+     */
+    run_lerpTest(p0, p1) {
+        this.lerp_1 = new Lerp1D(this);
+        // this.add.gameObject(lp1);
+        this.lerp_1.start(p0, p1);
+    }}
+
+//=============================================================================
+
+class Lerp1D 
+{
+    constructor(scene)
+    {
+        //super(scene);
+        this.p0 = 0;
+        this.p0_ing = 0;
+        this.p1 = 0;
+        this.t = 0;
+        this.tstep = 0.1;
+        this.started = false;
+    }
+
+    start(p0, p1)
+    {   
+        this.p0 = p0;
+        this.p0_ing = p0;
+        this.p1 = p1;
+        this.t = 0;
+
+        // this.setActive(true);
+        // this.setVisible(true);
+
+        this.started = true;
+    }
+
+    update(time, delta)
+    {
+        if(this.t > 1) {
+            console.log('> dead-self');
+            this.started = false;
+            // this.setActive(false);
+            // this.destroy();
+            //this = null;
+            return false;
+        }
+
+        if(this.started) {
+            console.log.apply(console, ['Lerp1D: p0(t)', this.p0_ing.toFixed(2), '(', this.t.toFixed(2), ')', ' -> ', this.p1.toFixed(2)]);
+            this.p0_ing = ((1-this.t) * this.p0_ing) + (this.t * this.p1);
+            this.t += this.tstep;
+        }
+        return true;
+    }
 }
+
+//=============================================================================
 
 class DebugTextButton
 {
@@ -211,3 +271,50 @@ class DebugTextButton
         this._onClick = onClickResponse;
     }
 }
+
+
+//=============================================================================
+
+/*
+    var Lerp1D = new Phaser.Class({
+        Extends: Phaser.GameObjects.Image,
+        initialize:
+        function Lerp1D(scene)
+        {
+            Phaser.GameObjects.Image.call(this, scene, 0, 0, 'lerp1d');
+            this.p0 = 0;
+            this.p0_ing = 0;
+            this.p1 = 0;
+            this.t = 0;
+            this.tstep = 0.05;
+            this.started = false;
+        },    
+        start: function(p0, p1)
+        {   
+            this.p0 = p0;
+            this.p0_ing = p0;
+            this.p1 = p1;
+            this.t = 0;
+
+            this.setActive(true);
+            this.setVisible(true);
+
+            this.started = true;
+        },    
+        update: function(time, delta)
+        {
+            if(this.t >= 1) {
+                console.log('> dead-self');
+                this.started = false;
+                this.setActive(false);
+                this.destroy();
+            }
+
+            if(this.started) {
+                console.log.apply(console, ['Lerp1D: p0(t)', this.p0_ing, '(', this.t, ')', ' -> ', this.p1]);
+                this.p0_ing = (this.p0 * this.t) + this.p1;
+                this.t += this.tstep;
+            }
+        }
+    });
+*/

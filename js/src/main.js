@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 
 // 도움말
 // 페이져3 메인 : https://photonstorm.github.io/phaser3-docs/Phaser.html
@@ -25,7 +27,7 @@ import { GameData, GameOption, GameStat } from './lib_common';
 /** phaser.game 오브젝트 저장용
  * @type {Phaser.Game}
  */
-export var game;
+export let game = null;
 
 
 
@@ -58,15 +60,9 @@ function preload_global()
 
     let start_scene_name = 'BlastScene';
     {
-        // @ts-ignore
-        // eslint-disable-next-line no-undef
-        if(argvStartSceneName) {
-            // @ts-ignore
-            // eslint-disable-next-line no-undef
-            console.log('FirstScene: ', argvStartSceneName);
-            // @ts-ignore
-            // eslint-disable-next-line no-undef
-            start_scene_name = argvStartSceneName;
+        if(StartScene) {
+            console.log('FirstScene: ', StartScene);
+            start_scene_name = StartScene;
         }
         else {
             console.log('FirstScene: No Scene info: ');
