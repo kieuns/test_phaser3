@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 import Phaser from 'phaser'
 import { TickPlay } from './TickPlay';
+import { XY } from './lib_gametype';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -235,6 +236,28 @@ class Lerp1D
 
 //=============================================================================
 
+function lerp_1(v1, v2, t)
+{
+    return v1 * t + v2;
+}
+
+/**
+ * @param {XY} v1
+ * @param {XY} v2
+ * @param {number} t
+ * @param {XY} out
+ */
+function lerp_2(v1, v2, t, out)
+{
+    out = out ? out : new XY(v1.x, v1.y);
+    let nx = lerp_1(v1.x, v2.x, t);
+    let ny = lerp_1(v1.y, v1.y, t);
+    out.set(nx, ny);
+    return out;
+}
+
+//=============================================================================
+
 class DebugTextButton
 {
     /** @type {Phaser.GameObjects.Text} */
@@ -246,6 +269,23 @@ class DebugTextButton
     /**
      * @param {Phaser.Scene} scene
      * @param {string} text
+     * @param {number} x
+     * @param {number} y
+     * @param {JSON} style
+     * @param {function} onClickResponse
+     */
+    constructor(scene, text, x, y, style, onClickResponse)
+    {
+        this.init(scene, text, x, y, style, onClickResponse);
+    }
+
+    /**
+     * @param {Phaser.Scene} scene
+     * @param {string} text
+     * @param {number} x
+     * @param {number} y
+     * @param {JSON} style
+     * @param {function} onClickResponse
      */
     init(scene, text, x, y, style, onClickResponse)
     {
@@ -264,6 +304,11 @@ class DebugTextButton
             console.log('on click');
             this._onClick && this._onClick();
         });
+    }
+
+    setPosition(x, y)
+    {
+        this._text.setPosition(x, y);
     }
 
     setClickCallback(onClickResponse) 
