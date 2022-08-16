@@ -100,21 +100,36 @@ export class CurveTestScene extends Phaser.Scene
         ];
         this.dotObjArr = [];
 
-        let img1 = this.add.image(100, 100, 'click_box');
-        img1.setInteractive();
-        this.input.setDraggable(img1);
+        this.clickBox1 = this.add.image(100, 100, 'click_box');
+        this.clickBox1.setInteractive();
+        this.input.setDraggable(this.clickBox1);
 
         this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
             gameObject.x = dragX;
             gameObject.y = dragY;
         });
 
-        this._dbgTxtBtn = new DebugTextButton(this, "[lerp 1 test]", 5, 5, null, () => {
-            this.run_lerpTest(2, -2);
-        });
+        this.makeTextButton();
 
         // tick play - start
         this._tickPlay.start();
+    }
+
+    makeTextButton()
+    {
+        let x = 5;
+        let y = 5; 
+        let yStep = 20;
+
+        this._dbgTxtBtn = new DebugTextButton(this, "[lerp 1 test]", x, y, null, () => {
+            this.run_lerpTest_1();
+        });
+        y += yStep;
+
+        this._dbgTxtBtn2 = new DebugTextButton(this, "[lerp 2 test]", x, y, null, () => {
+            this.run_lerpTest_2();
+        });
+        y += yStep;
     }
 
     getLine()
@@ -175,19 +190,21 @@ export class CurveTestScene extends Phaser.Scene
         this._updateArr.updateAll(time, delta);
     }
 
-    /**
-     * @param {number} p0
-     * @param {number} p1
-     */
-    run_lerpTest(p0, p1) {
+    run_lerpTest_1() {
         let lerp_1 = new Lerp1D();
-        lerp_1.setParam(p0, p1);
+        lerp_1.setParam(2, -2);
         this._updateArr.add(lerp_1);
-
+    }
+    run_lerpTest_2() {
         let lerp_2 = new Lerp2D();
-        lerp_2.setParam(0, 0, 100, 50);
+        lerp_2.setParam(100, 20, 400, 400, 0.05);
+        lerp_2.setCallback((time, delta) => {
+            this.clickBox1.x = lerp_2.get_x();
+            this.clickBox1.y = lerp_2.get_y();
+        });
         this._updateArr.add(lerp_2);
-    }}
+    }
+}
 
 //=============================================================================
 
@@ -234,7 +251,11 @@ class InstallUpdate
 {
     /** @type {InstallUpdateArray} */
     _updateCaller = null;
+    /** @type {boolean} */
     _started = false;
+    /** @type {(time, delta) => void} */
+    _onUpdate = null;
+
     constructor() {
         this._started = false;
     }
@@ -260,7 +281,16 @@ class InstallUpdate
      * @param {number} time current time
      * @param {number} delta delta time
      */
-    update(time, delta) {}
+    update(time, delta) {
+        this.onUpdate(time, delta)
+    }
+
+    setCallback(updateCallback) {
+        this._onUpdate = updateCallback;
+    }
+    onUpdate(time, delta) {
+        this._onUpdate && this._onUpdate(time, delta);
+    }
 }
 
 //=============================================================================
@@ -276,15 +306,6 @@ class Lerp1D extends InstallUpdate
         this.t = 0;
         this.tstep = 0.1;
     }
-
-    // start(p0, p1)
-    // {   
-    //     this.p0 = p0;
-    //     this.p0_ing = p0;
-    //     this.p1 = p1;
-    //     this.t = 0;
-    //     super.start();
-    // }
 
     setParam(p0, p1)
     {
@@ -303,12 +324,18 @@ class Lerp1D extends InstallUpdate
         }
 
         if(this._started) {
-            let str1 = ' p0:' + this.p0.toFixed(2) + ' -> p1:' + this.p1.toFixed(2);
-            console.log.apply(console, ['Lerp2D: p0_ing:', this.p0_ing.toFixed(2), ', t:',this.t.toFixed(2), ', ', str1 ]);
-            this.p0_ing = ((1-this.t) * this.p0_ing) + (this.t * this.p1);
+            this.p0_ing = lerp_1(this.p0, this.p1, this.t);
+            this.realWork(time, delta);
             this.t += this.tstep;
         }
         return true;
+    }
+
+    realWork(time, delta)
+    {
+        let str1 = ' p0:' + this.p0.toFixed(2) + ' -> p1:' + this.p1.toFixed(2);
+        console.log.apply(console, ['Lerp1D: p0_ing:', this.p0_ing.toFixed(2), ', t:',this.t.toFixed(2), ', ', str1 ]);
+        this.onUpdate(time, delta);
     }
 }
 
@@ -337,13 +364,17 @@ class Lerp2D extends InstallUpdate
         this.tstep = 0.1;
     }
 
-    setParam(x1, y1, x2, y2)
+    setParam(x1, y1, x2, y2, tStep)
     {   
         this.p0.set(x1, y1);
         this.p0_ing.set(x1, y1);
         this.p1.set(x2, y2);
         this.t = 0;
+        this.tstep = tStep ? tStep : 0.1;
     }
+
+    get_x() { return this.p0_ing.x; }
+    get_y() { return this.p0_ing.y; }
 
     update(time, delta)
     {
@@ -354,11 +385,17 @@ class Lerp2D extends InstallUpdate
         }
 
         if(this._started) {
-            //console.log.apply(console, ['Lerp2D: p0:', this.p0.toFixed(2), ', p0_ing:', this.p0_ing.toFixed(2), ', t:',this.t.toFixed(2), ', (p1:', this.p1.toFixed(2)]);
-            this.p0_ing = lerp_2(this.p0, this.p1, this.t, this.p0_ing);
+            lerp_2(this.p0, this.p1, this.t, this.p0_ing);
+            this.realWork(time, delta);
             this.t += this.tstep;
         }
         return true;
+    }
+
+    realWork(time, delta)
+    {
+        console.log.apply(console, ['Lerp2D:p0_ing:', this.p0_ing.toString(), ', t:',this.t.toFixed(2), ', p0:', this.p0.toString(), ', p1:', this.p1.toString()]);
+        this.onUpdate(time, delta);
     }
 }
 
@@ -366,8 +403,8 @@ class Lerp2D extends InstallUpdate
 
 function lerp_1(v1, v2, t)
 {
-    return v1 * t + v2;
-    //return ((1-t) * v1) + (t * v2);
+    //return v1 * t + v2; // 이거 왜 안먹히지?
+    return ((1-t) * v1) + (t * v2);
 }
 
 /**
@@ -380,7 +417,8 @@ function lerp_2(v1, v2, t, out)
 {
     out = out ? out : new XY(v1.x, v1.y);
     let nx = lerp_1(v1.x, v2.x, t);
-    let ny = lerp_1(v1.y, v1.y, t);
+    let ny = lerp_1(v1.y, v2.y, t);
+    //console.log.apply(console, [' > ', v1.toString(), ',', nx.toFixed(2), ',', ny.toFixed(2)]);
     out.set(nx, ny);
     return out;
 }

@@ -41,7 +41,7 @@ class XY
 
     clone_to_v2() { return new Phaser.Math.Vector2(this.x, this.y); }
 
-    to_string() { return '(' + this.x + ',' + this.y + ')'; }
+    to_string() { return '(' + this.x.toFixed(2) + ',' + this.y.toFixed(2) + ')'; }
     toString() { return this.to_string(); }
 }
 
