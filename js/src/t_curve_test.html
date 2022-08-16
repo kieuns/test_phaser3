@@ -34,7 +34,8 @@
     <!-- <div id="game_main" style="display: flex; justify-content: center;"> -->
     <div id="game_main">
       <script>var StartScene='CurveTestScene';</script> <!-- blast_scene, curve_test_scene -->
-      <script type="module" src="./main.js"></script>
+      <!-- 커브테스트씬에서는 type="module" 를 안붙여야 에러가 안나는데, 이유 아직 모름 -->
+      <script src="./main.js"></script>
     </div>
   </div>
 </body>

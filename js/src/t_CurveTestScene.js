@@ -55,21 +55,26 @@ export class CurveTestScene extends Phaser.Scene
     /** @type {DebugTextButton} */
     _dbgTxtBtn = null;
 
+    /** @type {InstallUpdateArray} */
+    _updateArr = null;
+
     constructor()
     {
         super('CurveTestScene');
         CurveTestScene.instance = this;
 
         /** @type {Phaser.GameObjects.Graphics} */
-        this.graphics = undefined;
+        this.graphics       = undefined;
 
-        this.lineDataArr = undefined;
-        this.lineObjIndex = 0;
-        this.lineObjArr = undefined;
+        this.lineDataArr    = undefined;
+        this.lineObjIndex   = 0;
+        this.lineObjArr     = undefined;
 
-        this.dotDataArr = undefined;
-        this.dotObjIndex = 0;
-        this.dotObjArr = undefined;
+        this.dotDataArr     = undefined;
+        this.dotObjIndex    = 0;
+        this.dotObjArr      = undefined;
+
+        this._updateArr = new InstallUpdateArray();
 
         this._tickPlay = new TickPlay();
         console.log(this.constructor.name, ': done');
@@ -104,10 +109,8 @@ export class CurveTestScene extends Phaser.Scene
             gameObject.y = dragY;
         });
 
-        this._dbgTxtBtn = new DebugTextButton();
-        this._dbgTxtBtn.init(this, "[lerp 1 test]", 5, 5, null, () => {
-            //console.log('onclick - onclick');
-            this.run_lerpTest(-5, 20);
+        this._dbgTxtBtn = new DebugTextButton(this, "[lerp 1 test]", 5, 5, null, () => {
+            this.run_lerpTest(2, -2);
         });
 
         // tick play - start
@@ -169,11 +172,7 @@ export class CurveTestScene extends Phaser.Scene
             this.graphics.fillPointShape(dot, spec.fillStyle.size);
         }
 
-        if(this.lerp_1) {
-            if(!this.lerp_1.update(time, delta)) {
-                this.lerp_1 = null;
-            }
-        }
+        this._updateArr.updateAll(time, delta);
     }
 
     /**
@@ -181,53 +180,182 @@ export class CurveTestScene extends Phaser.Scene
      * @param {number} p1
      */
     run_lerpTest(p0, p1) {
-        this.lerp_1 = new Lerp1D(this);
-        // this.add.gameObject(lp1);
-        this.lerp_1.start(p0, p1);
+        let lerp_1 = new Lerp1D();
+        lerp_1.setParam(p0, p1);
+        this._updateArr.add(lerp_1);
+
+        let lerp_2 = new Lerp2D();
+        lerp_2.setParam(0, 0, 100, 50);
+        this._updateArr.add(lerp_2);
     }}
 
 //=============================================================================
 
-class Lerp1D 
+class InstallUpdateArray 
 {
-    constructor(scene)
+    /** @type {InstallUpdate[]} */
+    _objectArray = null;
+
+    /** @type {InstallUpdateArray} 인스턴스. 쓸까 지울까? */
+    InstG = null;
+
+    constructor() {
+        this.InstG = this;
+        this._objectArray = [];
+    }
+
+    add(obj) {
+        obj.setCaller(this);
+        obj.start();
+        this._objectArray.push(obj);
+        this.dbglog();
+    }
+    del(obj) {
+        let i = this._objectArray.findIndex(v => v === obj);
+        if(i !== -1) {
+            this._objectArray.splice(i, 1);
+            this.dbglog();
+        }
+    }
+    dbglog() {
+        console.log('this._objectArray:len: ', this._objectArray.length);
+    }
+     /**
+     * @virtual
+     * @param {number} time current time
+     * @param {number} delta delta time
+     */
+     updateAll(time, delta) {
+        this._objectArray.forEach((v, i, arr) => v.update(time, delta));
+    }
+}
+
+class InstallUpdate
+{
+    /** @type {InstallUpdateArray} */
+    _updateCaller = null;
+    _started = false;
+    constructor() {
+        this._started = false;
+    }
+    /** virtual 
+     * @param {InstallUpdateArray} updater
+     */
+    start() {
+        this._started = true;
+    }
+    /** virtual 
+     * @param {boolean} delSelf
+     */
+    stop(delSelf) {
+        this._started = false;
+        if(delSelf) {
+            this._updateCaller.del(this);
+        }
+    }
+    setCaller(updateCaller) {
+        this._updateCaller = updateCaller;
+    }
+    /** @virtual
+     * @param {number} time current time
+     * @param {number} delta delta time
+     */
+    update(time, delta) {}
+}
+
+//=============================================================================
+
+class Lerp1D extends InstallUpdate
+{
+    constructor()
     {
-        //super(scene);
+        super();
         this.p0 = 0;
         this.p0_ing = 0;
         this.p1 = 0;
         this.t = 0;
         this.tstep = 0.1;
-        this.started = false;
     }
 
-    start(p0, p1)
-    {   
+    // start(p0, p1)
+    // {   
+    //     this.p0 = p0;
+    //     this.p0_ing = p0;
+    //     this.p1 = p1;
+    //     this.t = 0;
+    //     super.start();
+    // }
+
+    setParam(p0, p1)
+    {
         this.p0 = p0;
         this.p0_ing = p0;
         this.p1 = p1;
         this.t = 0;
-
-        // this.setActive(true);
-        // this.setVisible(true);
-
-        this.started = true;
     }
 
     update(time, delta)
     {
         if(this.t > 1) {
             console.log('> dead-self');
-            this.started = false;
-            // this.setActive(false);
-            // this.destroy();
-            //this = null;
+            this.stop(true);
             return false;
         }
 
-        if(this.started) {
-            console.log.apply(console, ['Lerp1D: p0(t)', this.p0_ing.toFixed(2), '(', this.t.toFixed(2), ')', ' -> ', this.p1.toFixed(2)]);
+        if(this._started) {
+            let str1 = ' p0:' + this.p0.toFixed(2) + ' -> p1:' + this.p1.toFixed(2);
+            console.log.apply(console, ['Lerp2D: p0_ing:', this.p0_ing.toFixed(2), ', t:',this.t.toFixed(2), ', ', str1 ]);
             this.p0_ing = ((1-this.t) * this.p0_ing) + (this.t * this.p1);
+            this.t += this.tstep;
+        }
+        return true;
+    }
+}
+
+//=============================================================================
+
+class Lerp2D extends InstallUpdate 
+{
+    /** @type {XY} */
+    p0 = new XY();
+    /** @type {XY} */
+    p0_ing = new XY();
+    /** @type {XY} */
+    p1 = new XY();
+    /** @type {number} */
+    t = 0;
+    /** @type {number} */
+    tstep = 0;
+    
+    constructor()
+    {
+        super();
+        this.p0.set(0,0);
+        this.p0_ing.set(0,0);
+        this.p1.set(0,0);
+        this.t = 0;
+        this.tstep = 0.1;
+    }
+
+    setParam(x1, y1, x2, y2)
+    {   
+        this.p0.set(x1, y1);
+        this.p0_ing.set(x1, y1);
+        this.p1.set(x2, y2);
+        this.t = 0;
+    }
+
+    update(time, delta)
+    {
+        if(this.t > 1) {
+            console.log('> Lerp2D:dead-self');
+            this.stop(true);
+            return false;
+        }
+
+        if(this._started) {
+            //console.log.apply(console, ['Lerp2D: p0:', this.p0.toFixed(2), ', p0_ing:', this.p0_ing.toFixed(2), ', t:',this.t.toFixed(2), ', (p1:', this.p1.toFixed(2)]);
+            this.p0_ing = lerp_2(this.p0, this.p1, this.t, this.p0_ing);
             this.t += this.tstep;
         }
         return true;
@@ -239,6 +367,7 @@ class Lerp1D
 function lerp_1(v1, v2, t)
 {
     return v1 * t + v2;
+    //return ((1-t) * v1) + (t * v2);
 }
 
 /**
@@ -320,46 +449,3 @@ class DebugTextButton
 
 //=============================================================================
 
-/*
-    var Lerp1D = new Phaser.Class({
-        Extends: Phaser.GameObjects.Image,
-        initialize:
-        function Lerp1D(scene)
-        {
-            Phaser.GameObjects.Image.call(this, scene, 0, 0, 'lerp1d');
-            this.p0 = 0;
-            this.p0_ing = 0;
-            this.p1 = 0;
-            this.t = 0;
-            this.tstep = 0.05;
-            this.started = false;
-        },    
-        start: function(p0, p1)
-        {   
-            this.p0 = p0;
-            this.p0_ing = p0;
-            this.p1 = p1;
-            this.t = 0;
-
-            this.setActive(true);
-            this.setVisible(true);
-
-            this.started = true;
-        },    
-        update: function(time, delta)
-        {
-            if(this.t >= 1) {
-                console.log('> dead-self');
-                this.started = false;
-                this.setActive(false);
-                this.destroy();
-            }
-
-            if(this.started) {
-                console.log.apply(console, ['Lerp1D: p0(t)', this.p0_ing, '(', this.t, ')', ' -> ', this.p1]);
-                this.p0_ing = (this.p0 * this.t) + this.p1;
-                this.t += this.tstep;
-            }
-        }
-    });
-*/

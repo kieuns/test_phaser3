@@ -103,7 +103,7 @@ function main()
         //transparent: true,
     };
     game = new Phaser.Game(config);
-    console.log("main(): done. next move is preload()");
+    console.log("main(): done. next is preload()");
 }
 
 main();
