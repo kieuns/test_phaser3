@@ -55,7 +55,7 @@ export class CurveTestScene extends Phaser.Scene
     /** @type {DebugTextButton} */
     _dbgTxtBtn = null;
 
-    /** @type {InstallUpdateArray} */
+    /** @type {ManualUpdateArray} */
     _updateArr = null;
 
     constructor()
@@ -74,7 +74,7 @@ export class CurveTestScene extends Phaser.Scene
         this.dotObjIndex    = 0;
         this.dotObjArr      = undefined;
 
-        this._updateArr = new InstallUpdateArray();
+        this._updateArr = new ManualUpdateArray();
 
         this._tickPlay = new TickPlay();
         console.log(this.constructor.name, ': done');
@@ -208,12 +208,12 @@ export class CurveTestScene extends Phaser.Scene
 
 //=============================================================================
 
-class InstallUpdateArray 
+class ManualUpdateArray 
 {
-    /** @type {InstallUpdate[]} */
+    /** @type {ManualUpdate[]} */
     _objectArray = null;
 
-    /** @type {InstallUpdateArray} 인스턴스. 쓸까 지울까? */
+    /** @type {ManualUpdateArray} 인스턴스. 쓸까 지울까? */
     InstG = null;
 
     constructor() {
@@ -247,9 +247,9 @@ class InstallUpdateArray
     }
 }
 
-class InstallUpdate
+class ManualUpdate
 {
-    /** @type {InstallUpdateArray} */
+    /** @type {ManualUpdateArray} */
     _updateCaller = null;
     /** @type {boolean} */
     _started = false;
@@ -260,7 +260,7 @@ class InstallUpdate
         this._started = false;
     }
     /** virtual 
-     * @param {InstallUpdateArray} updater
+     * @param {ManualUpdateArray} updater
      */
     start() {
         this._started = true;
@@ -295,7 +295,8 @@ class InstallUpdate
 
 //=============================================================================
 
-class Lerp1D extends InstallUpdate
+/** 일반 숫자 A->B로 보간되는 과정 처리 클래스 */
+class Lerp1D extends ManualUpdate
 {
     constructor()
     {
@@ -341,16 +342,21 @@ class Lerp1D extends InstallUpdate
 
 //=============================================================================
 
-class Lerp2D extends InstallUpdate 
+/** XY 클래스값을 A->B로 보간되는 과정 처리 클래스 */
+class Lerp2D extends ManualUpdate 
 {
     /** @type {XY} */
     p0 = new XY();
+
     /** @type {XY} */
     p0_ing = new XY();
+
     /** @type {XY} */
     p1 = new XY();
+
     /** @type {number} */
     t = 0;
+
     /** @type {number} */
     tstep = 0;
     
@@ -363,6 +369,9 @@ class Lerp2D extends InstallUpdate
         this.t = 0;
         this.tstep = 0.1;
     }
+    get_x() { return this.p0_ing.x; }
+    get_y() { return this.p0_ing.y; }
+
 
     setParam(x1, y1, x2, y2, tStep)
     {   
@@ -373,12 +382,10 @@ class Lerp2D extends InstallUpdate
         this.tstep = tStep ? tStep : 0.1;
     }
 
-    get_x() { return this.p0_ing.x; }
-    get_y() { return this.p0_ing.y; }
-
     update(time, delta)
     {
-        if(this.t > 1) {
+        // this.t 가 부동소수점으로 (1.0000000000000002 가 되어서 1보다 큰 경우가 있음)
+        if(this.t >= (1 + this.tstep)) {
             console.log('> Lerp2D:dead-self');
             this.stop(true);
             return false;
@@ -388,7 +395,7 @@ class Lerp2D extends InstallUpdate
             lerp_2(this.p0, this.p1, this.t, this.p0_ing);
             this.realWork(time, delta);
             this.t += this.tstep;
-            console.log(this.t);
+            //console.log(this.t);
         }
         return true;
     }
@@ -402,6 +409,13 @@ class Lerp2D extends InstallUpdate
 
 //=============================================================================
 
+/**
+ * 
+ * @param {number} v1 시작 숫자값
+ * @param {number} v2 종료 숫자값
+ * @param {number} t 0~1 사이의 진행 값
+ * @returns 보간 결과
+ */
 function lerp_1(v1, v2, t)
 {
     //return v1 * t + v2; //try1
@@ -414,6 +428,7 @@ function lerp_1(v1, v2, t)
  * @param {XY} v2
  * @param {number} t
  * @param {XY} out
+ * @returns 보간결과 out을 그대로 리턴
  */
 function lerp_2(v1, v2, t, out)
 {
@@ -485,7 +500,6 @@ class DebugTextButton
         this._onClick = onClickResponse;
     }
 }
-
 
 //=============================================================================
 
