@@ -6,6 +6,8 @@ import { XY } from './lib_gametype';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
+
 // class doc
 // - graphics : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.Graphics.html
 // example
@@ -22,7 +24,6 @@ import { XY } from './lib_gametype';
 // - game-objects/dom-element/InputTest
 // - https://phaser.io/examples/v3/search?search=input
 
-/*
 // ex1
 graphics.lineStyle(5,0xFF00FF,1.0);
 graphics.beginPath();
@@ -30,6 +31,7 @@ graphics.moveTo(100,100);
 graphics.lineTo(200,200);
 graphics.closePath();
 graphics.strokePath();
+
 // ex2
 graphics.lineStyle(5,0xFF00FF, 1.0);
 graphics.fillStyle(0xFFFFFF, 1.0);
@@ -40,6 +42,7 @@ graphics.strokeRect(50, 50, 400, 200);
 var sprite = this.add.sprite(x, y, texture);
 sprite.setInteractive();
 sprite.on('pointerdown', callback, context);
+
 */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +209,90 @@ export class CurveTestScene extends Phaser.Scene
     }
 }
 
-//=============================================================================
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class ClickLocation {
+}
+class ClickLocationGuide
+{
+    /** @type {Phaser.Scene} */
+    _scene = null;
+    /** @type {string[]} */
+    _stepMsg = null; // string[]
+    /** @type {number} */
+    _playIdx = 0;
+    /** @type {XY[]} */
+    _xyArr = null; // XY[]
+    /** @type {boolean} */
+    _isWorking = false;
+    /** @type {TickPlay} */
+    _tickPlayer = null;
+    /** @type {Phaser.GameObjects.Text} */
+    _text = null;
+
+    /** @param {Phaser.Scene} scene  */
+    constructor(scene)
+    {
+        this._scene = scene;
+    }
+
+    getActive() { return this._isWorking; }
+    setTickPlayer(tp) { this._tickPlayer = tp; }
+    /** @param {Phaser.GameObjects.Text} textObj */
+    setTextPlace(textObj) { this._text = textObj; }
+
+    addStep(msg) {
+        if(!this._stepMsg) {
+            this._stepMsg = [];
+        }
+        this._stepMsg.push(msg);
+    }
+
+    async playStep() {
+        this._isWorking = true;
+        this._xyArr = [];
+        this._scene.input.on('pointerdown', this.onPointerDown.bind(this));
+        this._scene.input.on('pointerup', this.onPointerUp.bind(this));
+        this._playIdx = 0;
+        this._isWorking = false;
+
+        // 끝나면 틱플로 셀프 삭제
+    }
+
+    async playOneStep(idx) {
+        // show text some where
+        this._text.setText(this._stepMsg[idx]);
+        // wait input
+    }
+
+    /** @param {Phaser.Input.Pointer} pointer */
+    onPointerUp(pointer)
+    {
+        let lbtn_up = pointer.leftButtonReleased();
+        if(this._mouseDown && lbtn_up) {
+            this.closeMouseInputCapture(pointer.x, pointer.y);
+        }
+    }
+}
+
+/**
+ * @param {Phaser.Scene} scene 
+ */
+async function startLerp2D_ClickLocationGuide(scene)
+{
+    let guide = new ClickLocationGuide(scene);
+
+    guide.addStep('Press anywhere');
+    guide.addStep('Press anywhere');
+    guide.addStep('Press anywhere');
+
+    await guide.playStep();
+
+    let click_pos = guide.getClickedLocations();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class ManualUpdateArray 
 {
@@ -293,7 +379,7 @@ class ManualUpdate
     }
 }
 
-//=============================================================================
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** 일반 숫자 A->B로 보간되는 과정 처리 클래스 */
 class Lerp1D extends ManualUpdate
@@ -340,7 +426,7 @@ class Lerp1D extends ManualUpdate
     }
 }
 
-//=============================================================================
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** XY 클래스값을 A->B로 보간되는 과정 처리 클래스 */
 class Lerp2D extends ManualUpdate 
@@ -384,6 +470,7 @@ class Lerp2D extends ManualUpdate
 
     update(time, delta)
     {
+        //if(Math.floor(this.t) > 1) { // 테스트해볼 코드 > 한단계 남겨두고 멈춰서 못쓸것
         // this.t 가 부동소수점으로 (1.0000000000000002 가 되어서 1보다 큰 경우가 있음)
         if(this.t >= (1 + this.tstep)) {
             console.log('> Lerp2D:dead-self');
@@ -407,7 +494,7 @@ class Lerp2D extends ManualUpdate
     }
 }
 
-//=============================================================================
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * 
@@ -440,7 +527,7 @@ function lerp_2(v1, v2, t, out)
     return out;
 }
 
-//=============================================================================
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class DebugTextButton
 {
@@ -501,5 +588,5 @@ class DebugTextButton
     }
 }
 
-//=============================================================================
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
