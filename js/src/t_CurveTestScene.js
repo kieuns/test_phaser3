@@ -388,6 +388,7 @@ class Lerp2D extends InstallUpdate
             lerp_2(this.p0, this.p1, this.t, this.p0_ing);
             this.realWork(time, delta);
             this.t += this.tstep;
+            console.log(this.t);
         }
         return true;
     }
@@ -403,8 +404,9 @@ class Lerp2D extends InstallUpdate
 
 function lerp_1(v1, v2, t)
 {
-    //return v1 * t + v2; // 이거 왜 안먹히지?
-    return ((1-t) * v1) + (t * v2);
+    //return v1 * t + v2; //try1
+    return v1 + ((v2 - v1) * t); // try2
+    //return ((1-t) * v1) + (t * v2); // try3
 }
 
 /**
