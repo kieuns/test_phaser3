@@ -3,15 +3,15 @@
 	"version": "1.0.0",
 	"description": "A template project for Phaser 3 using Parceljs",
 	"scripts": {
-		"t_objectmove": "parcel src/t_object_move.html -p 8000",
-		"t_tickplay": "parcel src/t_tick_test.html -p 8000",
-		"t_curve": "parcel src/t_curve_test.html -p 8000",
-		"t_tailwind": "parcel src/t_tailwind_css.html -p 8000",
-		"t_main": "parcel src/main.html -p 8000",
-		"t_testany": "parcel src/t_test_any.html -p 8000",
+		"ObjectMove": "parcel src/t_object_move.html -p 8000",
+		"TickPlay": "parcel src/t_tick_test.html -p 8000",
+		"Curve": "parcel src/t_curve_test.html -p 8000",
+		"Tailwind": "parcel src/t_tailwind_css.html -p 8000",
+		"Main": "parcel src/main.html -p 8000",
+		"Testany": "parcel src/t_test_any.html -p 8000",
 		"Blast": "parcel src/blast_scene.html -p 8000",
-		"t_Three.js": "parcel src/t_threejs.html -p 8000",
-		"t_bulma": "parcel src/t_bulma_test.html -p 8000"
+		"Three.js": "parcel src/t_threejs.html -p 8000",
+		"BulmaTest": "parcel src/t_bulma_test.html -p 8000"
 	},
 	"scripts.bak": {
 		"build": "parcel build src/index.html --out-dir dist",
@@ -36,7 +36,9 @@
 	},
 	"dependencies": {
 		"animejs": "^3.2.1",
+		"async": "^3.2.4",
 		"dat.gui": "^0.7.9",
+		"lodash": "^4.17.21",
 		"phaser": "^3.55.2"
 	},
 	"parcelCleanPaths": [
