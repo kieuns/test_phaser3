@@ -6,6 +6,7 @@ import { vec2_2_str, XY } from './lib_gametype';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//#region [참고용 웹 링크]
 /*
 
 // class doc
@@ -44,8 +45,97 @@ sprite.setInteractive();
 sprite.on('pointerdown', callback, context);
 
 */
+//#endregion
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export class ManualUpdateArray 
+{
+    /** @type {ManualUpdate[]} */
+    _objectArray = null;
+
+    /** @type {ManualUpdateArray} 인스턴스. 쓸까 지울까? */
+    InstG = null;
+
+    constructor() {
+        this.InstG = this;
+        this._objectArray = [];
+    }
+
+    add(obj) {
+        obj.setCaller(this);
+        obj.start();
+        this._objectArray.push(obj);
+        this.dbglog();
+    }
+    del(obj) {
+        let i = this._objectArray.findIndex(v => v === obj);
+        if(i !== -1) {
+            this._objectArray.splice(i, 1);
+            this.dbglog();
+        }
+    }
+    dbglog() {
+        console.log('this._objectArray:len: ', this._objectArray.length);
+    }
+     /**
+     * @virtual
+     * @param {number} time current time
+     * @param {number} delta delta time
+     */
+     updateAll(time, delta) {
+        this._objectArray.forEach((v, i, arr) => v.update(time, delta));
+    }
+}
+
+export  class ManualUpdate
+{
+    /** @type {ManualUpdateArray} */
+    _updateCaller = null;
+    /** @type {boolean} */
+    _started = false;
+    /** @type {(time, delta) => void} */
+    _onUpdate = null;
+
+    constructor() {
+        this._started = false;
+    }
+    /** virtual 
+     * @param {ManualUpdateArray} updater
+     */
+    start() {
+        this._started = true;
+    }
+    /** virtual 
+     * @param {boolean} delSelf
+     */
+    stop(delSelf) {
+        this._started = false;
+        if(delSelf) {
+            this._updateCaller.del(this);
+        }
+    }
+    setCaller(updateCaller) {
+        this._updateCaller = updateCaller;
+    }
+    /** @virtual
+     * @param {number} time current time
+     * @param {number} delta delta time
+     */
+    update(time, delta) {
+        this.onUpdate(time, delta)
+    }
+
+    setCallback(updateCallback) {
+        this._onUpdate = updateCallback;
+    }
+    onUpdate(time, delta) {
+        this._onUpdate && this._onUpdate(time, delta);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 export class CurveTestScene extends Phaser.Scene
 {
@@ -244,8 +334,6 @@ export class CurveTestScene extends Phaser.Scene
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class ClickLocation {
-}
 class ClickLocationGuide
 {
     /** @type {Phaser.Scene} */
@@ -327,93 +415,6 @@ async function startLerp2D_ClickLocationGuide(scene)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class ManualUpdateArray 
-{
-    /** @type {ManualUpdate[]} */
-    _objectArray = null;
-
-    /** @type {ManualUpdateArray} 인스턴스. 쓸까 지울까? */
-    InstG = null;
-
-    constructor() {
-        this.InstG = this;
-        this._objectArray = [];
-    }
-
-    add(obj) {
-        obj.setCaller(this);
-        obj.start();
-        this._objectArray.push(obj);
-        this.dbglog();
-    }
-    del(obj) {
-        let i = this._objectArray.findIndex(v => v === obj);
-        if(i !== -1) {
-            this._objectArray.splice(i, 1);
-            this.dbglog();
-        }
-    }
-    dbglog() {
-        console.log('this._objectArray:len: ', this._objectArray.length);
-    }
-     /**
-     * @virtual
-     * @param {number} time current time
-     * @param {number} delta delta time
-     */
-     updateAll(time, delta) {
-        this._objectArray.forEach((v, i, arr) => v.update(time, delta));
-    }
-}
-
-class ManualUpdate
-{
-    /** @type {ManualUpdateArray} */
-    _updateCaller = null;
-    /** @type {boolean} */
-    _started = false;
-    /** @type {(time, delta) => void} */
-    _onUpdate = null;
-
-    constructor() {
-        this._started = false;
-    }
-    /** virtual 
-     * @param {ManualUpdateArray} updater
-     */
-    start() {
-        this._started = true;
-    }
-    /** virtual 
-     * @param {boolean} delSelf
-     */
-    stop(delSelf) {
-        this._started = false;
-        if(delSelf) {
-            this._updateCaller.del(this);
-        }
-    }
-    setCaller(updateCaller) {
-        this._updateCaller = updateCaller;
-    }
-    /** @virtual
-     * @param {number} time current time
-     * @param {number} delta delta time
-     */
-    update(time, delta) {
-        this.onUpdate(time, delta)
-    }
-
-    setCallback(updateCallback) {
-        this._onUpdate = updateCallback;
-    }
-    onUpdate(time, delta) {
-        this._onUpdate && this._onUpdate(time, delta);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 /** 일반 숫자 A->B로 보간되는 과정 처리 클래스 */
 class Lerp1D extends ManualUpdate
 {
@@ -488,6 +489,7 @@ class Lerp2D extends ManualUpdate
         this.t = 0;
         this.tstep = 0.1;
     }
+    
     get_x() { return this.p0_ing.x; }
     get_y() { return this.p0_ing.y; }
 
@@ -702,6 +704,7 @@ function lerp_2(v1, v2, t, out)
     return out;
 }
 
+/** lerp_2만 써서, 점 3개짜리 곡선 움직임 찾기 */
 function point3_bezier_1(p0, p1, p2, t, out)
 {
     out = out ? out : new XY(p0.x, p0.y);
@@ -711,6 +714,7 @@ function point3_bezier_1(p0, p1, p2, t, out)
     return out;
 }
 
+/** lerp_2만 써서, 점 4개짜리 곡선 움직임 찾기 */
 function point4_bezier_1(p0, p1, p2, p3, t, out)
 {
     out = out ? out : new XY(p0.x, p0.y);
