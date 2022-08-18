@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import Phaser from 'phaser'
 import { TickPlay } from './TickPlay';
-import { XY } from './lib_gametype';
+import { vec2_2_str, XY } from './lib_gametype';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -55,8 +55,8 @@ export class CurveTestScene extends Phaser.Scene
     /** @type {TickPlay} */
     _tickPlay = null;
 
-    /** @type {DebugTextButton} */
-    _dbgTxtBtn = null;
+    /** @type {UI_TextButton} */
+    _dbgTxtBtnArr = null;
 
     /** @type {ManualUpdateArray} */
     _updateArr = null;
@@ -107,10 +107,13 @@ export class CurveTestScene extends Phaser.Scene
         this.clickBox1.setInteractive();
         this.input.setDraggable(this.clickBox1);
 
+        //setInteractive() 설정된 게임 오브젝트는 모두 움직인다.
         this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
             gameObject.x = dragX;
             gameObject.y = dragY;
         });
+
+        this.input.on('pointerup', this.onPointerUp.bind(this));
 
         this.makeTextButton();
 
@@ -124,14 +127,18 @@ export class CurveTestScene extends Phaser.Scene
         let y = 5; 
         let yStep = 20;
 
-        this._dbgTxtBtn = new DebugTextButton(this, "[lerp 1 test]", x, y, null, () => {
-            this.run_lerpTest_1();
-        });
+        this._dbgTxtBtnArr = [];
+
+        let btn = new UI_TextButton(this, "[Lerp 1D]", x, y, null, () => { this.run_lerpTest_1(); });
         y += yStep;
 
-        this._dbgTxtBtn2 = new DebugTextButton(this, "[lerp 2 test]", x, y, null, () => {
-            this.run_lerpTest_2();
-        });
+        btn = new UI_TextButton(this, "[Lerp 2D]", x, y, null, () => { this.run_lerpTest_2(); });
+        y += yStep;
+
+        btn = new UI_TextButton(this, "[Pt3 Bz 1]", x, y, null, () => { this.run_pt3_bezier_1(); });
+        y += yStep;
+
+        btn = new UI_TextButton(this, "[Pt4 Bz 1]", x, y, null, () => { this.run_pt4_bezier_1(); });
         y += yStep;
     }
 
@@ -193,6 +200,14 @@ export class CurveTestScene extends Phaser.Scene
         this._updateArr.updateAll(time, delta);
     }
 
+    /** @param {Phaser.Input.Pointer} pointer */
+    onPointerUp(pointer)
+    {
+        let lbtn_up = pointer.leftButtonReleased();
+        console.log('PT:' + vec2_2_str(pointer));
+    }
+
+
     run_lerpTest_1() {
         let lerp_1 = new Lerp1D();
         lerp_1.setParam(2, -2);
@@ -206,6 +221,24 @@ export class CurveTestScene extends Phaser.Scene
             this.clickBox1.y = lerp_2.get_y();
         });
         this._updateArr.add(lerp_2);
+    }
+    run_pt3_bezier_1() {
+        let pt3bz = new Point3Bezier();
+        pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
+        pt3bz.setCallback((time, delta) => {
+            this.clickBox1.x = pt3bz.get_x();
+            this.clickBox1.y = pt3bz.get_y();
+        });
+        this._updateArr.add(pt3bz);
+    }
+    run_pt4_bezier_1() {
+        let pt4bz = new Point4Bezier1();
+        pt4bz.setParam(69, 676, 165, 460, 482, 455, 570, 676, 0.05);
+        pt4bz.setCallback((time, delta) => {
+            this.clickBox1.x = pt4bz.get_x();
+            this.clickBox1.y = pt4bz.get_y();
+        });
+        this._updateArr.add(pt4bz);
     }
 }
 
@@ -472,7 +505,8 @@ class Lerp2D extends ManualUpdate
     {
         //if(Math.floor(this.t) > 1) { // 테스트해볼 코드 > 한단계 남겨두고 멈춰서 못쓸것
         // this.t 가 부동소수점으로 (1.0000000000000002 가 되어서 1보다 큰 경우가 있음)
-        if(this.t >= (1 + this.tstep)) {
+        //if(this.t >= (1 + this.tstep)) {
+        if(this.t > 1.01) {
             console.log('> Lerp2D:dead-self');
             this.stop(true);
             return false;
@@ -494,6 +528,146 @@ class Lerp2D extends ManualUpdate
     }
 }
 
+class Point3Bezier extends ManualUpdate 
+{
+    /** @type {XY} */
+    pt_ing = new XY();
+
+    /** @type {XY} */
+    p0 = new XY();
+
+    /** @type {XY} */
+    p1 = new XY();
+
+    /** @type {XY} */
+    p2 = new XY();
+
+    /** @type {number} */
+    t = 0;
+
+    /** @type {number} */
+    tstep = 0;
+    
+    constructor()
+    {
+        super();
+        this.pt_ing.set(0,0);
+        this.p0.set(0,0);
+        this.p1.set(0,0);
+        this.p2.set(0,0);
+        this.t = 0;
+        this.tstep = 0.1;
+    }
+    get_x() { return this.pt_ing.x; }
+    get_y() { return this.pt_ing.y; }
+
+
+    setParam(x1, y1, x2, y2, x3, y3, tStep)
+    {   
+        this.pt_ing.set(x1, y1);
+        this.p0.set(x1, y1);
+        this.p1.set(x2, y2);
+        this.p2.set(x3, y3);
+        this.t = 0;
+        this.tstep = tStep ? tStep : 0.1;
+    }
+
+    update(time, delta)
+    {
+        if(this.t > 1) {
+            console.log('> Point3Bezier:dead-self');
+            this.stop(true);
+            return false;
+        }
+
+        if(this._started) {
+            point3_bezier_1(this.p0, this.p1, this.p2, this.t, this.pt_ing);
+            this.realWork(time, delta);
+            this.t += this.tstep;
+            //console.log(this.t);
+        }
+        return true;
+    }
+
+    realWork(time, delta)
+    {
+        console.log.apply(console, ['Point3Bezier:pt_ing:', this.pt_ing.toString(), '(',this.t.toFixed(2), ') p0:', this.p0.toString(), ', p1:', this.p1.toString(), ', p2:', this.p2.toString()]);
+        this.onUpdate(time, delta);
+    }
+}
+
+class Point4Bezier1 extends ManualUpdate 
+{
+    /** @type {XY} */
+    pt_ing = new XY();
+
+    /** @type {XY} */
+    p0 = new XY();
+
+    /** @type {XY} */
+    p1 = new XY();
+
+    /** @type {XY} */
+    p2 = new XY();
+
+    /** @type {XY} */
+    p3 = new XY();
+
+    /** @type {number} */
+    t = 0;
+
+    /** @type {number} */
+    tstep = 0;
+    
+    constructor()
+    {
+        super();
+        this.pt_ing.set(0,0);
+        this.p0.set(0,0);
+        this.p1.set(0,0);
+        this.p2.set(0,0);
+        this.p3.set(0,0);
+        this.t = 0;
+        this.tstep = 0.1;
+    }
+
+    get_x() { return this.pt_ing.x; }
+    get_y() { return this.pt_ing.y; }
+
+
+    setParam(x1, y1, x2, y2, x3, y3, x4, y4, tStep)
+    {   
+        this.pt_ing.set(x1, y1);
+        this.p0.set(x1, y1);
+        this.p1.set(x2, y2);
+        this.p2.set(x3, y3);
+        this.p3.set(x4, y4);
+        this.t = 0;
+        this.tstep = tStep ? tStep : 0.1;
+    }
+
+    update(time, delta)
+    {
+        if(this.t > 1) {
+            console.log('> Point3Bezier:dead-self');
+            this.stop(true);
+            return false;
+        }
+
+        if(this._started) {
+            point4_bezier_1(this.p0, this.p1, this.p2, this.p3, this.t, this.pt_ing);
+            this.realWork(time, delta);
+            this.t += this.tstep;
+        }
+        return true;
+    }
+
+    realWork(time, delta)
+    {
+        this.onUpdate(time, delta);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -505,9 +679,10 @@ class Lerp2D extends ManualUpdate
  */
 function lerp_1(v1, v2, t)
 {
-    //return v1 * t + v2; //try1
-    return v1 + ((v2 - v1) * t); // try2
-    //return ((1-t) * v1) + (t * v2); // try3
+    return v1 + ((v2 - v1) * t); // 기본 그대로 사용
+
+    //return v1 * t + v2;               //type-0
+    //return ((1-t) * v1) + (t * v2);   //type-1
 }
 
 /**
@@ -527,12 +702,41 @@ function lerp_2(v1, v2, t, out)
     return out;
 }
 
+function point3_bezier_1(p0, p1, p2, t, out)
+{
+    out = out ? out : new XY(p0.x, p0.y);
+    let a = lerp_2(p0, p1, t);
+    let b = lerp_2(p1, p2, t);
+    lerp_2(a, b, t, out);
+    return out;
+}
+
+function point4_bezier_1(p0, p1, p2, p3, t, out)
+{
+    out = out ? out : new XY(p0.x, p0.y);
+    
+    let a = lerp_2(p0, p1, t);
+    let b = lerp_2(p1, p2, t);
+    let c = lerp_2(p2, p3, t);
+
+    let e = lerp_2(a, b, t);
+    let f = lerp_2(b, c, t);
+
+    lerp_2(e, f, t, out);
+
+    return out;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class DebugTextButton
+class UI_TextButton
 {
     /** @type {Phaser.GameObjects.Text} */
     _text = null;
+
+    /** @type {Phaser.GameObjects.Text} */
+    _hiddenText = null;
 
     /** @type {() => void} */
     _onClick = null;
@@ -575,15 +779,18 @@ class DebugTextButton
             console.log('on click');
             this._onClick && this._onClick();
         });
+
+        this._hiddenText = scene.add.text(x, y, text);
+        this._hiddenText.active = false;
     }
 
-    setPosition(x, y)
-    {
+    setPosition(x, y) {
         this._text.setPosition(x, y);
+        this._hiddenText.setPosition(x, y);
     }
 
-    setClickCallback(onClickResponse) 
-    {
+    /** @param {Function} onClickResponse */
+    setClickCallback(onClickResponse) {
         this._onClick = onClickResponse;
     }
 }
