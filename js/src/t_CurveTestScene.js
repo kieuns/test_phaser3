@@ -175,6 +175,7 @@ export class CurveTestScene extends Phaser.Scene
     preload()
     {
         this.load.image('click_box', './assets/16x16.png');
+        this.load.image('missile_a', './assets/missile_a.png');
     }
 
     create()
@@ -194,7 +195,7 @@ export class CurveTestScene extends Phaser.Scene
         ];
         this.dotObjArr = [];
 
-        this.clickBox1 = this.add.image(100, 100, 'click_box');
+        this.clickBox1 = this.add.image(100, 100, 'missile_a').setScale(0.3);
         this.clickBox1.setInteractive();
         this.input.setDraggable(this.clickBox1);
 
