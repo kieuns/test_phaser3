@@ -151,25 +151,24 @@ export class CurveTestScene extends Phaser.Scene
     /** @type {ManualUpdateArray} */
     _updateArr = null;
 
+    /** @type {Phaser.GameObjects.Graphics} */
+    _graphics = null;
+
     constructor()
     {
         super('CurveTestScene');
         CurveTestScene.instance = this;
 
         /** @type {Phaser.GameObjects.Graphics} */
-        this.graphics       = undefined;
-
+        this._graphics      = null;
         this.lineDataArr    = undefined;
         this.lineObjIndex   = 0;
         this.lineObjArr     = undefined;
-
         this.dotDataArr     = undefined;
         this.dotObjIndex    = 0;
         this.dotObjArr      = undefined;
-
-        this._updateArr = new ManualUpdateArray();
-
-        this._tickPlay = new TickPlay();
+        this._updateArr     = new ManualUpdateArray();
+        this._tickPlay      = new TickPlay();
         console.log(this.constructor.name, ': done');
     }
 
@@ -180,7 +179,7 @@ export class CurveTestScene extends Phaser.Scene
 
     create()
     {
-        this.graphics = this.add.graphics(); // this.add.graphics({ lineStyle: { width: 4, color: 0xaa00aa } });
+        this._graphics = this.add.graphics(); // this.add.graphics({ lineStyle: { width: 4, color: 0xaa00aa } });
 
         this.lineDataArr = [
             { fillStyle:{color:0xffffff, size:1, alpha:1.0 }, from:{x:0, y:0}, to:{x:100, y:200 } },
@@ -259,7 +258,7 @@ export class CurveTestScene extends Phaser.Scene
     update(time, delta)
     {
         //console.log('update > ', time, ',', delta);
-        this.graphics.clear();
+        this._graphics.clear();
 
         this.lineObjIndex = 0;
         this.dotObjIndex = 0;
@@ -272,8 +271,8 @@ export class CurveTestScene extends Phaser.Scene
             line.x2 = spec.to.x;
             line.y2 = spec.to.y;
 
-            this.graphics.lineStyle(spec.fillStyle.size, spec.fillStyle.color, spec.fillStyle.alpha);
-            this.graphics.strokeLineShape(line);
+            this._graphics.lineStyle(spec.fillStyle.size, spec.fillStyle.color, spec.fillStyle.alpha);
+            this._graphics.strokeLineShape(line);
         }
 
         for(let i = 0; i < this.dotDataArr.length; i++)
@@ -283,8 +282,8 @@ export class CurveTestScene extends Phaser.Scene
             dot.x = spec.to.x;
             dot.y = spec.to.y;
 
-            this.graphics.fillStyle(spec.fillStyle.color, spec.fillStyle.alpha);
-            this.graphics.fillPointShape(dot, spec.fillStyle.size);
+            this._graphics.fillStyle(spec.fillStyle.color, spec.fillStyle.alpha);
+            this._graphics.fillPointShape(dot, spec.fillStyle.size);
         }
 
         this._updateArr.updateAll(time, delta);
