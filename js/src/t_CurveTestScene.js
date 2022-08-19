@@ -703,6 +703,7 @@ function lerp_2(v1, v2, t, out)
     return out;
 }
 
+
 /** lerp_2만 써서, 점 3개짜리 곡선 움직임 찾기 */
 function point3_bezier_1(p0, p1, p2, t, out)
 {
@@ -712,6 +713,40 @@ function point3_bezier_1(p0, p1, p2, t, out)
     lerp_2(a, b, t, out);
     return out;
 }
+
+/*
+---------------------------------------
+	B
+    
+A		C
+
+1) A->B : ((1-t)A + tB)
+2) B->C : ((1-t)B + tC)
+3) AB->BC : (1-t)((1-t)A + tB) + t((1-t)B + tC)
+
+---------------------------------------
+
+= (1-t)²A + t(1-t)B + t(1-t)B + t²C
+= (1-t)²A + 2t(1-t)B + t²C
+
+---------------------------------------
+*/
+
+/**
+ * 
+ * @param {Phaser.Math.Vector2} p0 
+ * @param {Phaser.Math.Vector2} p1 
+ * @param {Phaser.Math.Vector2} p2 
+ * @param {number} t 
+ * @param {Phaser.Math.Vector2} out 
+ * @returns {Phaser.Math.Vector2} out
+ */
+function point3_bezier_2(p0, p1, p2, t, out)
+{
+    out = out ? out : new Phaser.Math.Vector2(p0.x, p0.y);
+    return out;
+}
+
 
 /** lerp_2만 써서, 점 4개짜리 곡선 움직임 찾기 */
 function point4_bezier_1(p0, p1, p2, p3, t, out)
