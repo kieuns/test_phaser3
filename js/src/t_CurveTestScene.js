@@ -179,6 +179,8 @@ export class CurveTestScene extends Phaser.Scene
 
     create()
     {
+        this.do_vector_test();
+
         this._graphics = this.add.graphics(); // this.add.graphics({ lineStyle: { width: 4, color: 0xaa00aa } });
 
         this.lineDataArr = [
@@ -227,8 +229,21 @@ export class CurveTestScene extends Phaser.Scene
         btn = new UI_TextButton(this, "[Pt3 Bz 1]", x, y, null, () => { this.run_pt3_bezier_1(); });
         y += yStep;
 
+        btn = new UI_TextButton(this, "[Pt3 Bz 2]", x, y, null, () => { this.run_pt3_bezier_2(); });
+        y += yStep;
+
         btn = new UI_TextButton(this, "[Pt4 Bz 1]", x, y, null, () => { this.run_pt4_bezier_1(); });
         y += yStep;
+    }
+
+    do_vector_test()
+    {
+        let v1 = new Phaser.Math.Vector2(2, 2);
+        let v2 = new Phaser.Math.Vector2(4, 4);
+        console.log(vec2_2_str(v1) + ':v1');
+        let v3 = v1.clone().scale( 3 );
+        console.log(vec2_2_str(v1) + ':v1.clone().scale( 3 )');
+        console.log(vec2_2_str(v3) + ':v3');
     }
 
     getLine()
@@ -314,6 +329,16 @@ export class CurveTestScene extends Phaser.Scene
     run_pt3_bezier_1() {
         let pt3bz = new Point3Bezier();
         pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
+        pt3bz.setCallback((time, delta) => {
+            this.clickBox1.x = pt3bz.get_x();
+            this.clickBox1.y = pt3bz.get_y();
+        });
+        this._updateArr.add(pt3bz);
+    }
+    run_pt3_bezier_2() {
+        let pt3bz = new Point3Bezier();
+        pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
+        pt3bz.calcType = 2;
         pt3bz.setCallback((time, delta) => {
             this.clickBox1.x = pt3bz.get_x();
             this.clickBox1.y = pt3bz.get_y();
@@ -548,6 +573,9 @@ class Point3Bezier extends ManualUpdate
 
     /** @type {number} */
     tstep = 0;
+
+    /** @type {number} */
+    calcType = 1;
     
     constructor()
     {
@@ -582,7 +610,14 @@ class Point3Bezier extends ManualUpdate
         }
 
         if(this._started) {
-            point3_bezier_1(this.p0, this.p1, this.p2, this.t, this.pt_ing);
+            if(this.calcType === 2) {
+                let a = point3_bezier_2(this.p0, this.p1, this.p2, this.t, this.pt_ing);
+                this.pt_ing.x = a.x;
+                this.pt_ing.y = a.y;
+            }
+            else {
+                point3_bezier_1(this.p0, this.p1, this.p2, this.t, this.pt_ing);
+            }
             this.realWork(time, delta);
             this.t += this.tstep;
             //console.log(this.t);
@@ -619,6 +654,9 @@ class Point4Bezier1 extends ManualUpdate
 
     /** @type {number} */
     tstep = 0;
+
+    /** @type {number} */
+    calcType = 1;
     
     constructor()
     {
@@ -714,15 +752,30 @@ function point3_bezier_1(p0, p1, p2, t, out)
     return out;
 }
 
+/**
+ * @param {XY} p0
+ * @param {XY} p1
+ * @param {XY} p2
+ * @param {number} t
+ * @param {XY} out
+ */
+function point3_bezier_2(p0, p1, p2, t, out)
+{
+    out = out ? out : new XY(0, 0);
+    out.x = point3_bezier_calc_1(p0.x, p1.x, p2.x, t);
+    out.y = point3_bezier_calc_1(p0.y, p1.y, p2.y, t);
+    return out; 
+}
+
 /*
 ---------------------------------------
-	B
+    B
     
-A		C
+A      C
 
-1) A->B : ((1-t)A + tB)
-2) B->C : ((1-t)B + tC)
-3) AB->BC : (1-t)((1-t)A + tB) + t((1-t)B + tC)
+1) A->B : ((1-t)A + tB)  ->  ok
+2) B->C : ((1-t)B + tC)  ->  ok
+3) AB->BC : (1-t)((1-t)A + tB) + t((1-t)B + tC)  ->  ok
 
 ---------------------------------------
 
@@ -731,20 +784,11 @@ A		C
 
 ---------------------------------------
 */
-
-/**
- * 
- * @param {Phaser.Math.Vector2} p0 
- * @param {Phaser.Math.Vector2} p1 
- * @param {Phaser.Math.Vector2} p2 
- * @param {number} t 
- * @param {Phaser.Math.Vector2} out 
- * @returns {Phaser.Math.Vector2} out
- */
-function point3_bezier_2(p0, p1, p2, t, out)
+function point3_bezier_calc_1(n0, n1, n2, t)
 {
-    out = out ? out : new Phaser.Math.Vector2(p0.x, p0.y);
-    return out;
+    return (1-t)**2*n0 + 2*t*(1-t)*n1 + t**2*n2; //ok
+    //let mt = 1-t; return (mt*(mt*n0 + t*n1) + t*(mt*n1 + t*n2)); // ok
+    //return n0*t**2 - 2*n1*t**2 + n2*t**2 - 2*n0*t + 2*n1*t + n0; //ok
 }
 
 
