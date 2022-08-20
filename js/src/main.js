@@ -58,16 +58,15 @@ function preload_global()
     game.scene.add('TickTest', TickTestScene);
     game.scene.add('ObjectMove', ObjectMoveScene);
 
-    let start_scene_name = 'BlastScene';
-    {
-        if(StartScene) {
-            console.log('FirstScene: ', StartScene);
-            start_scene_name = StartScene;
-        }
-        else {
-            console.log('FirstScene: No Scene info: ');
-        }
+    let start_scene_name = 'BlastScene';    
+    if(StartScene) {
+        console.log('FirstScene: ', StartScene);
+        start_scene_name = StartScene;
     }
+    else {
+        console.log('FirstScene: No Scene info: ');
+    }
+
     let the_scene = game.scene.getScene(start_scene_name);
     if(the_scene === null) {
         console.log('Scene.Start.Failed: ', start_scene_name);
@@ -78,7 +77,8 @@ function preload_global()
     console.log("= preload_global(): exit");
 }
 
-function main()
+/** new Phaser.Game()에 사용할 페이저 초기화 파라미터 만들기 */
+export function makeBasicPhaserConfig()
 {
     GameData.stat = new GameStat();
     GameData.stat.timeAppStarted = Date.now();
@@ -95,17 +95,58 @@ function main()
             autoCenter: Phaser.Scale.CENTER_BOTH,
             mode: Phaser.Scale.FIT
         },
+        //dom: { createContainer: true }, // 페이져에서 돔 엘리먼트 사용하게 하기
         parent: 'game_main',
-        scene:
-        {
+        scene: {
             preload: preload_global
         },
-        //transparent: true,
     };
-    game = new Phaser.Game(config);
-    console.log("main(): done. next is preload()");
+    return config;
 }
 
-main();
+/** @returns {Phaser.Game} new_game */
+function makePhaser(config) 
+{
+    let new_game = new Phaser.Game(config);
+    console.log("Phaser.Game() make done. begin default scene");
+    return new_game;
+}
+
+function start_default_main()
+{
+    let config = makeBasicPhaserConfig();
+    game = makePhaser(config);
+}
+
+/** CurveScene를 위한 초기화 함수 */
+function start_curve_scene()
+{
+    function preloadForCurveScene()
+    {
+        console.log("= preloadForCurveScene(): start");
+        let start_scene_name = 'CurveTestScene';
+        game.scene.add(start_scene_name, CurveTestScene);
+        let the_scene = game.scene.getScene(start_scene_name);
+        if(the_scene === null) {
+            console.warn('Scene.Start.Failed: ', start_scene_name);
+        }
+        else {
+            game.scene.start(start_scene_name);
+        }
+        console.log("= preloadForCurveScene(): exit");
+    }
+
+    let config = makeBasicPhaserConfig();
+    config.dom = { createContainer: true }; // 페이져에서 돔 엘리먼트 사용하게 하기
+    config.scene.preload = preloadForCurveScene;
+    game = makePhaser(config);
+}
+
+if(StartScene === 'CurveTestScene') {
+    start_curve_scene();
+}
+else {
+    start_default_main();
+}
 
 

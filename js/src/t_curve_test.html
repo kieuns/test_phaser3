@@ -19,6 +19,14 @@
     #game_main { width: 100vw; height: 100vh; } /* 보이는 화면 크기에 맞추도록. 뷰포트(vw, vh)값을 설정 */
   </style>
 
+  <style type="text/css">
+    #popup_1 { position: absolute; width:400px; height: 200px; background-color: #ff883949;
+      padding: 10px;
+    }
+    #popup_1 #title { color: white; font-weight: 700;}
+    #popup_1 #msg_1 { color: white; }
+  </style>
+
   <!--
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.54.0/dist/phaser.js"></script>
   <script src="./lib/dat.tui-0.7.7/dat.gui.min.js"></script>
@@ -32,6 +40,12 @@
   <div id="bkgnd">
     <div id="datgui"></div>
     <!-- <div id="game_main" style="display: flex; justify-content: center;"> -->
+
+    <div id="popup_1">
+      <div id="title">title</div>
+      <div id="msg_1">text elain</div>
+    </div>
+
     <div id="game_main">
       <script>var StartScene='CurveTestScene';</script> <!-- blast_scene, curve_test_scene -->
       <!-- 커브테스트씬에서는 type="module" 를 안붙여야 에러가 안나는데, 이유 아직 모름 -->

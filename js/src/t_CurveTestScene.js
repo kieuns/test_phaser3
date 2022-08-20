@@ -9,23 +9,23 @@ import { vec2_2_str, XY } from './lib_gametype';
 //#region [참고용 웹 링크]
 /*
 
-// class doc
+// [class doc]
 // - graphics : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.Graphics.html
-// example
+// [example]
 // - geom : http://phaser.io/examples/v3/category/geom
 
 // https://phaser.io/examples/v3/view/game-objects/graphics/obj-scene
 
-// 입력
+// [입력]
 // - InputManager : https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html
 // - setInteractive : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.GameObject.html#setInteractive__anchor
-// example
+// [example]
 // - https://phaser.io/examples/v3/view/game-objects/dom-element/input-test
 // - https://phaser.io/examples/v3/category/input
 // - game-objects/dom-element/InputTest
 // - https://phaser.io/examples/v3/search?search=input
 
-// ex1
+// [ex1]
 graphics.lineStyle(5,0xFF00FF,1.0);
 graphics.beginPath();
 graphics.moveTo(100,100);
@@ -33,13 +33,13 @@ graphics.lineTo(200,200);
 graphics.closePath();
 graphics.strokePath();
 
-// ex2
+// [ex2]
 graphics.lineStyle(5,0xFF00FF, 1.0);
 graphics.fillStyle(0xFFFFFF, 1.0);
 graphics.fillRect(50, 50, 400, 200);
 graphics.strokeRect(50, 50, 400, 200);
 
-// 입력처리
+// [입력처리]
 var sprite = this.add.sprite(x, y, texture);
 sprite.setInteractive();
 sprite.on('pointerdown', callback, context);
@@ -180,7 +180,7 @@ export class CurveTestScene extends Phaser.Scene
 
     create()
     {
-        this.do_vector_test();
+        this.t_vector_class_test();
 
         this._graphics = this.add.graphics(); // this.add.graphics({ lineStyle: { width: 4, color: 0xaa00aa } });
 
@@ -237,14 +237,16 @@ export class CurveTestScene extends Phaser.Scene
         y += yStep;
     }
 
-    do_vector_test()
+    t_vector_class_test()
     {
+        console.log('=t_vector_class_test():S');
         let v1 = new Phaser.Math.Vector2(2, 2);
         let v2 = new Phaser.Math.Vector2(4, 4);
         console.log(vec2_2_str(v1) + ':v1');
         let v3 = v1.clone().scale( 3 );
         console.log(vec2_2_str(v1) + ':v1.clone().scale( 3 )');
         console.log(vec2_2_str(v3) + ':v3');
+        console.log('=t_vector_class_test():E');
     }
 
     getLine()
@@ -711,7 +713,6 @@ class Point4Bezier1 extends ManualUpdate
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * 
  * @param {number} v1 시작 숫자값
  * @param {number} v2 종료 숫자값
  * @param {number} t 0~1 사이의 진행 값
@@ -719,10 +720,9 @@ class Point4Bezier1 extends ManualUpdate
  */
 function lerp_1(v1, v2, t)
 {
-    return v1 + ((v2 - v1) * t); // 기본 그대로 사용
-
+    return ((1-t) * v1) + (t * v2);   //기본 그대로 사용
+    //return v1 + ((v2 - v1) * t);      //type-1
     //return v1 * t + v2;               //type-0
-    //return ((1-t) * v1) + (t * v2);   //type-1
 }
 
 /**
