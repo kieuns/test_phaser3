@@ -49,7 +49,7 @@ sprite.on('pointerdown', callback, context);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export class ManualUpdateArray 
+export class ManualUpdateArray
 {
     /** @type {ManualUpdate[]} */
     _objectArray = null;
@@ -78,12 +78,12 @@ export class ManualUpdateArray
     dbglog() {
         console.log('this._objectArray:len: ', this._objectArray.length);
     }
-     /**
-     * @virtual
-     * @param {number} time current time
-     * @param {number} delta delta time
-     */
-     updateAll(time, delta) {
+    /**
+    * @virtual
+    * @param {number} time current time
+    * @param {number} delta delta time
+    */
+    manualUpdate(time, delta) {
         this._objectArray.forEach((v, i, arr) => v.update(time, delta));
     }
 }
@@ -100,15 +100,15 @@ export  class ManualUpdate
     constructor() {
         this._started = false;
     }
-    /** virtual 
-     * @param {ManualUpdateArray} updater
-     */
+    /** virtual
+    * @param {ManualUpdateArray} updater
+    */
     start() {
         this._started = true;
     }
-    /** virtual 
-     * @param {boolean} delSelf
-     */
+    /** virtual
+    * @param {boolean} delSelf
+    */
     stop(delSelf) {
         this._started = false;
         if(delSelf) {
@@ -119,13 +119,12 @@ export  class ManualUpdate
         this._updateCaller = updateCaller;
     }
     /** @virtual
-     * @param {number} time current time
-     * @param {number} delta delta time
-     */
+    * @param {number} time current time
+    * @param {number} delta delta time
+    */
     update(time, delta) {
         this.onUpdate(time, delta)
     }
-
     setCallback(updateCallback) {
         this._onUpdate = updateCallback;
     }
@@ -136,6 +135,110 @@ export  class ManualUpdate
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+export class PhaserGraphicObjectPool
+{
+    /** @type {Phaser.Scene} */
+    _scene = null;
+    /** @type {Phaser.GameObjects.Graphics} */
+    _graphics = null;
+
+    /** @type {Json[]} */
+    _lineDataArr    = undefined;
+    _lineObjIndex   = 0;
+    /** @type {Phaser.Geom.Line[]} */
+    _lineObjArr     = undefined;
+
+    /** @type {Json[]} */
+    _dotDataArr     = undefined;
+    _dotObjIndex    = 0;
+    /** @type {Phaser.Geom.Point[]} */
+    _dotObjArr      = undefined;
+
+    /** @param {Phaser.Scene} scene */
+    constructor(scene) {
+        this._scene = scene;
+        this.init();
+    }
+    /** @param {Phaser.Scene} scene */
+    init(scene) {
+        this._scene = scene? scene : this._scene;
+        this._lineDataArr = [];
+        this._lineObjIndex = 0;
+        this._lineObjArr = [];
+        this._dotDataArr = [];
+        this._dotObjIndex = 0;
+        this._dotObjArr = [];
+
+        // this.add.graphics({ lineStyle: { width: 4, color: 0xaa00aa } });
+        this._graphics = this._scene.add.graphics();
+    }
+
+    /** @param {JsonObject} jsonData */
+    addLine(jsonData) {
+        this._lineDataArr.push(jsonData);
+    }
+    /** @param {JsonObject[]} jsonData */
+    addLines(jsonData) {
+        jsonData.forEach(elem => this.addLine(elem));
+    }
+    /** @param {JsonObject} jsonData */
+    addDot(jsonData) {
+        this._dotDataArr.push(jsonData);
+    }
+    /** @param {JsonObject[]} jsonData */
+    addDots(jsonData) {
+        jsonData.forEach(elem => this.addDot(elem));
+    }
+
+    getLine()
+    {
+        if(this._lineObjIndex >= this._lineObjArr.length) {
+            this._lineObjArr.push(new Phaser.Geom.Line(0, 0, 0, 0));
+        }
+        let a_line = this._lineObjArr[this._lineObjIndex];
+        this._lineObjIndex++;
+        return a_line;
+    }
+    getDot()
+    {
+        if(this._dotObjIndex >= this._dotObjArr.length) {
+            this._dotObjArr.push(new Phaser.Geom.Point(0, 0));
+        }
+        let obj = this._dotObjArr[this._dotObjIndex];
+        this._dotObjIndex++;
+        return obj;
+    }
+
+    manualUpdate(time, delta) {
+        this._graphics.clear();
+
+        //this._lineObjIndex = 0;
+        //this._dotObjIndex = 0;
+        for(let i = 0; i < this._lineDataArr.length; i++)
+        {
+            const line = this.getLine();
+            const spec = this._lineDataArr[i];
+            line.x1 = spec.from.x;
+            line.y1 = spec.from.y;
+            line.x2 = spec.to.x;
+            line.y2 = spec.to.y;
+            this._graphics.lineStyle(spec.fillStyle.size, spec.fillStyle.color, spec.fillStyle.alpha);
+            this._graphics.strokeLineShape(line);
+        }
+
+        for(let i = 0; i < this._dotDataArr.length; i++)
+        {
+            const dot = this.getDot();
+            const spec = this._dotDataArr[i];
+            dot.x = spec.to.x;
+            dot.y = spec.to.y;
+            this._graphics.fillStyle(spec.fillStyle.color, spec.fillStyle.alpha);
+            this._graphics.fillPointShape(dot, spec.fillStyle.size);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export class CurveTestScene extends Phaser.Scene
 {
@@ -151,22 +254,14 @@ export class CurveTestScene extends Phaser.Scene
     /** @type {ManualUpdateArray} */
     _updateArr = null;
 
-    /** @type {Phaser.GameObjects.Graphics} */
-    _graphics = null;
+    /** @type {PhaserGraphicObjectPool} */
+    _graphicPool = null;
 
     constructor()
     {
         super('CurveTestScene');
         CurveTestScene.instance = this;
 
-        /** @type {Phaser.GameObjects.Graphics} */
-        this._graphics      = null;
-        this.lineDataArr    = undefined;
-        this.lineObjIndex   = 0;
-        this.lineObjArr     = undefined;
-        this.dotDataArr     = undefined;
-        this.dotObjIndex    = 0;
-        this.dotObjArr      = undefined;
         this._updateArr     = new ManualUpdateArray();
         this._tickPlay      = new TickPlay();
         console.log(this.constructor.name, ': done');
@@ -182,18 +277,18 @@ export class CurveTestScene extends Phaser.Scene
     {
         this.t_vector_class_test();
 
-        this._graphics = this.add.graphics(); // this.add.graphics({ lineStyle: { width: 4, color: 0xaa00aa } });
+        this._graphicPool = new PhaserGraphicObjectPool(this);
 
-        this.lineDataArr = [
+        const lineDataArr = [
             { fillStyle:{color:0xffffff, size:1, alpha:1.0 }, from:{x:0, y:0}, to:{x:100, y:200 } },
             { fillStyle:{color:0xff0000, size:1, alpha:1.0 }, from:{x:200, y:50}, to:{x:200, y:400} }
         ];
-        this.lineObjArr = [];
-
-        this.dotDataArr = [
+        const dotDataArr = [
             { fillStyle:{color:0xff00ff, size:10, alpha:1.0 }, to:{x:100, y:200 } },
         ];
-        this.dotObjArr = [];
+
+        this._graphicPool.addDots(dotDataArr);
+        this._graphicPool.addLines(lineDataArr);
 
         this.clickBox1 = this.add.image(100, 100, 'missile_a').setScale(0.3);
         this.clickBox1.setInteractive();
@@ -216,7 +311,7 @@ export class CurveTestScene extends Phaser.Scene
     makeTextButton()
     {
         let x = 5;
-        let y = 5; 
+        let y = 5;
         let yStep = 20;
 
         this._dbgTxtBtnArr = [];
@@ -249,60 +344,15 @@ export class CurveTestScene extends Phaser.Scene
         console.log('=t_vector_class_test():E');
     }
 
-    getLine()
-    {
-        if(this.lineObjIndex >= this.lineObjArr.length) {
-            this.lineObjArr.push(new Phaser.Geom.Line(0, 0, 0, 0));
-        }
-        let a_line = this.lineObjArr[this.lineObjIndex];
-        this.lineObjIndex++;
-        return a_line;
-    }
-
-    getDot()
-    {
-        if(this.dotObjIndex >= this.dotObjArr.length) {
-            this.dotObjArr.push(new Phaser.Geom.Point(0, 0));
-        }
-        let obj = this.dotObjArr[this.dotObjIndex];
-        this.dotObjIndex++;
-        return obj;
-    }
-
     /**
-     * @param {number} time current time
-     * @param {number} delta delta time
-     */
+    * @param {number} time current time
+    * @param {number} delta delta time
+    */
     update(time, delta)
     {
         //console.log('update > ', time, ',', delta);
-        this._graphics.clear();
-
-        this.lineObjIndex = 0;
-        this.dotObjIndex = 0;
-        for(let i = 0; i < this.lineDataArr.length; i++)
-        {
-            let line = this.getLine();
-            let spec = this.lineDataArr[i];
-            line.x1 = spec.from.x;
-            line.y1 = spec.from.y;
-            line.x2 = spec.to.x;
-            line.y2 = spec.to.y;
-            this._graphics.lineStyle(spec.fillStyle.size, spec.fillStyle.color, spec.fillStyle.alpha);
-            this._graphics.strokeLineShape(line);
-        }
-
-        for(let i = 0; i < this.dotDataArr.length; i++)
-        {
-            let dot = this.getDot();
-            let spec = this.dotDataArr[i];
-            dot.x = spec.to.x;
-            dot.y = spec.to.y;
-            this._graphics.fillStyle(spec.fillStyle.color, spec.fillStyle.alpha);
-            this._graphics.fillPointShape(dot, spec.fillStyle.size);
-        }
-
-        this._updateArr.updateAll(time, delta);
+        this._graphicPool.manualUpdate(time, delta);
+        this._updateArr.manualUpdate(time, delta);
     }
 
     /** @param {Phaser.Input.Pointer} pointer */
@@ -422,8 +472,8 @@ class ClickLocationGuide
 }
 
 /**
- * @param {Phaser.Scene} scene 
- */
+* @param {Phaser.Scene} scene
+*/
 async function startLerp2D_ClickLocationGuide(scene)
 {
     let guide = new ClickLocationGuide(scene);
@@ -488,7 +538,7 @@ class Lerp1D extends ManualUpdate
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** XY 클래스값을 A->B로 보간되는 과정 처리 클래스 */
-class Lerp2D extends ManualUpdate 
+class Lerp2D extends ManualUpdate
 {
     /** @type {XY} */
     p0 = new XY();
@@ -504,7 +554,7 @@ class Lerp2D extends ManualUpdate
 
     /** @type {number} */
     tstep = 0;
-    
+
     constructor()
     {
         super();
@@ -514,13 +564,13 @@ class Lerp2D extends ManualUpdate
         this.t = 0;
         this.tstep = 0.1;
     }
-    
+
     get_x() { return this.p0_ing.x; }
     get_y() { return this.p0_ing.y; }
 
 
     setParam(x1, y1, x2, y2, tStep)
-    {   
+    {
         this.p0.set(x1, y1);
         this.p0_ing.set(x1, y1);
         this.p1.set(x2, y2);
@@ -555,7 +605,7 @@ class Lerp2D extends ManualUpdate
     }
 }
 
-class Point3Bezier extends ManualUpdate 
+class Point3Bezier extends ManualUpdate
 {
     /** @type {XY} */
     pt_ing = new XY();
@@ -577,7 +627,7 @@ class Point3Bezier extends ManualUpdate
 
     /** @type {number} */
     calcType = 1;
-    
+
     constructor()
     {
         super();
@@ -593,7 +643,7 @@ class Point3Bezier extends ManualUpdate
 
 
     setParam(x1, y1, x2, y2, x3, y3, tStep)
-    {   
+    {
         this.pt_ing.set(x1, y1);
         this.p0.set(x1, y1);
         this.p1.set(x2, y2);
@@ -633,7 +683,7 @@ class Point3Bezier extends ManualUpdate
     }
 }
 
-class Point4Bezier1 extends ManualUpdate 
+class Point4Bezier1 extends ManualUpdate
 {
     /** @type {XY} */
     pt_ing = new XY();
@@ -658,7 +708,7 @@ class Point4Bezier1 extends ManualUpdate
 
     /** @type {number} */
     calcType = 1;
-    
+
     constructor()
     {
         super();
@@ -676,7 +726,7 @@ class Point4Bezier1 extends ManualUpdate
 
 
     setParam(x1, y1, x2, y2, x3, y3, x4, y4, tStep)
-    {   
+    {
         this.pt_ing.set(x1, y1);
         this.p0.set(x1, y1);
         this.p1.set(x2, y2);
@@ -712,11 +762,11 @@ class Point4Bezier1 extends ManualUpdate
 
 
 /**
- * @param {number} v1 시작 숫자값
- * @param {number} v2 종료 숫자값
- * @param {number} t 0~1 사이의 진행 값
- * @returns 보간 결과
- */
+* @param {number} v1 시작 숫자값
+* @param {number} v2 종료 숫자값
+* @param {number} t 0~1 사이의 진행 값
+* @returns 보간 결과
+*/
 function lerp_1(v1, v2, t)
 {
     return ((1-t) * v1) + (t * v2);   //기본 그대로 사용
@@ -725,18 +775,17 @@ function lerp_1(v1, v2, t)
 }
 
 /**
- * @param {XY} v1
- * @param {XY} v2
- * @param {number} t
- * @param {XY} out
- * @returns 보간결과 out을 그대로 리턴
- */
+* @param {XY} v1
+* @param {XY} v2
+* @param {number} t
+* @param {XY} out
+* @returns 보간결과 out을 그대로 리턴
+*/
 function lerp_2(v1, v2, t, out)
 {
     out = out ? out : new XY(v1.x, v1.y);
     let nx = lerp_1(v1.x, v2.x, t);
     let ny = lerp_1(v1.y, v2.y, t);
-    //console.log.apply(console, [' > ', v1.toString(), ',', nx.toFixed(2), ',', ny.toFixed(2)]);
     out.set(nx, ny);
     return out;
 }
@@ -753,37 +802,33 @@ function point3_bezier_1(p0, p1, p2, t, out)
 }
 
 /**
- * @param {XY} p0
- * @param {XY} p1
- * @param {XY} p2
- * @param {number} t
- * @param {XY} out
- */
+* @param {XY} p0
+* @param {XY} p1
+* @param {XY} p2
+* @param {number} t
+* @param {XY} out
+*/
 function point3_bezier_2(p0, p1, p2, t, out)
 {
     out = out ? out : new XY(0, 0);
     out.x = point3_bezier_calc_1(p0.x, p1.x, p2.x, t);
     out.y = point3_bezier_calc_1(p0.y, p1.y, p2.y, t);
-    return out; 
+    return out;
 }
 
 /*
 -------------------------------------------------------------------------------
 - 점 3개                                                                       -
 -------------------------------------------------------------------------------
-    B
-    
+B
 A      C
 
 1) A->B : ((1-t)A + tB)  ->  ok
 2) B->C : ((1-t)B + tC)  ->  ok
 3) AB->BC : (1-t)((1-t)A + tB) + t((1-t)B + tC)  ->  ok
-
 -------------------------------------------------------------------------------
-
 = (1-t)²A + (1-t)tB + (1-t)tB + t²C
 = (1-t)²A + 2(1-t)tB + t²C
-
 -------------------------------------------------------------------------------
 */
 function point3_bezier_calc_1(n0, n1, n2, t)
@@ -795,7 +840,7 @@ function point3_bezier_calc_1(n0, n1, n2, t)
 
 /*
 -------------------------------------------------------------------------------
-- 점 4개                                                                       - 
+- 점 4개                                                                       -
 -------------------------------------------------------------------------------
 = (1-t)³A + 3(1-t)²tB + 3(1-t)²tC + t³D
 -------------------------------------------------------------------------------
@@ -805,7 +850,7 @@ function point3_bezier_calc_1(n0, n1, n2, t)
 function point4_bezier_1(p0, p1, p2, p3, t, out)
 {
     out = out ? out : new XY(p0.x, p0.y);
-    
+
     let a = lerp_2(p0, p1, t);
     let b = lerp_2(p1, p2, t);
     let c = lerp_2(p2, p3, t);
@@ -825,10 +870,8 @@ class UI_TextButton
 {
     /** @type {Phaser.GameObjects.Text} */
     _text = null;
-
     /** @type {Phaser.GameObjects.Text} */
     _hiddenText = null;
-
     /** @type {() => void} */
     _onClick = null;
 
@@ -859,14 +902,16 @@ class UI_TextButton
         y = y ? y : 0;
         style = style ? style : { color: '#00ff00' };
 
-        if(onClickResponse) {
+        if(onClickResponse)
+        {
             this._onClick = onClickResponse;
         }
 
         this._text = scene.add.text(x, y, text);
         this._text.setInteractive();
 
-        this._text.on('pointerdown', () => {
+        this._text.on('pointerdown', () =>
+        {
             console.log('on click');
             this._onClick && this._onClick();
         });
@@ -875,13 +920,15 @@ class UI_TextButton
         this._hiddenText.active = false;
     }
 
-    setPosition(x, y) {
+    setPosition(x, y)
+    {
         this._text.setPosition(x, y);
         this._hiddenText.setPosition(x, y);
     }
 
     /** @param {Function} onClickResponse */
-    setClickCallback(onClickResponse) {
+    setClickCallback(onClickResponse)
+    {
         this._onClick = onClickResponse;
     }
 }
