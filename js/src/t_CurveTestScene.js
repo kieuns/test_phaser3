@@ -88,7 +88,7 @@ export class ManualUpdateArray
     }
 }
 
-export  class ManualUpdate
+export class ManualUpdate
 {
     /** @type {ManualUpdateArray} */
     _updateCaller = null;
@@ -154,6 +154,9 @@ export class PhaserGraphicObjectPool
     /** @type {Phaser.Geom.Point[]} */
     _dotObjArr      = undefined;
 
+    /** @type {TickPlay} */
+    _tickPlayer = null;
+
     /** @param {Phaser.Scene} scene */
     constructor(scene) {
         this._scene = scene;
@@ -173,9 +176,21 @@ export class PhaserGraphicObjectPool
         this._graphics = this._scene.add.graphics();
     }
 
+    setTickPlayer(tp) {
+        this._tickPlayer = tp;
+    }
+
     /** @param {JsonObject} jsonData */
     addLine(jsonData) {
         this._lineDataArr.push(jsonData);
+        if(jsonData.life && this._tickPlayer) {
+            this._tickPlayer.reserveOnTime(jsonData.life, () => {
+                let idx = this._lineDataArr.findIndex(elem => elem === jsonData);
+                if(idx >= 0) {
+                    this._lineDataArr.splice(idx, 1);
+                }
+            });
+        }
     }
     /** @param {JsonObject[]} jsonData */
     addLines(jsonData) {
@@ -184,6 +199,14 @@ export class PhaserGraphicObjectPool
     /** @param {JsonObject} jsonData */
     addDot(jsonData) {
         this._dotDataArr.push(jsonData);
+        if(jsonData.life && this._tickPlayer) {
+            this._tickPlayer.reserveOnTime(jsonData.life, () => {
+                let idx = this._dotDataArr.findIndex(elem => elem === jsonData);
+                if(idx >= 0) {
+                    this._dotDataArr.splice(idx, 1);
+                }
+            });
+        }
     }
     /** @param {JsonObject[]} jsonData */
     addDots(jsonData) {
@@ -209,8 +232,18 @@ export class PhaserGraphicObjectPool
         return obj;
     }
 
+    checkError() {
+        if(!this._tickPlayer) {
+            console.warn('tickPlayer need');
+            return false;
+        }
+        return true;
+    }
+
     manualUpdate(time, delta) {
         this._graphics.clear();
+
+        if(!this.checkError()) { return; }
 
         //this._lineObjIndex = 0;
         //this._dotObjIndex = 0;
@@ -239,6 +272,8 @@ export class PhaserGraphicObjectPool
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 export class CurveTestScene extends Phaser.Scene
 {
@@ -278,17 +313,15 @@ export class CurveTestScene extends Phaser.Scene
         this.t_vector_class_test();
 
         this._graphicPool = new PhaserGraphicObjectPool(this);
+        this._graphicPool.setTickPlayer(this._tickPlay);
 
         const lineDataArr = [
-            { fillStyle:{color:0xffffff, size:1, alpha:1.0 }, from:{x:0, y:0}, to:{x:100, y:200 } },
+            { life:0.5, fillStyle:{color:0xffffff, size:1, alpha:1.0 }, from:{x:0, y:0}, to:{x:100, y:200 } },
             { fillStyle:{color:0xff0000, size:1, alpha:1.0 }, from:{x:200, y:50}, to:{x:200, y:400} }
         ];
         const dotDataArr = [
-            { fillStyle:{color:0xff00ff, size:10, alpha:1.0 }, to:{x:100, y:200 } },
+            { life:2, fillStyle:{color:0xff00ff, size:10, alpha:1.0 }, to:{x:100, y:200 } },
         ];
-
-        this._graphicPool.addDots(dotDataArr);
-        this._graphicPool.addLines(lineDataArr);
 
         this.clickBox1 = this.add.image(100, 100, 'missile_a').setScale(0.3);
         this.clickBox1.setInteractive();
@@ -304,8 +337,10 @@ export class CurveTestScene extends Phaser.Scene
 
         this.makeTextButton();
 
-        // tick play - start
         this._tickPlay.start();
+
+        this._graphicPool.addDots(dotDataArr);
+        this._graphicPool.addLines(lineDataArr);
     }
 
     makeTextButton()
