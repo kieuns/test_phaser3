@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "es6",
-		//"lib":["DOM","DOM.Iterable","ES2015","ScriptHost","WebWorker"],
+		"module": "es6",
 		"moduleResolution": "node",
 		"allowJs": true,
 		"checkJs": true,

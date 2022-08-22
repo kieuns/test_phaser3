@@ -21,12 +21,23 @@
   </style>
 
   <style type="text/css">
-    #popup_1 { position: absolute; visibility:hidden;
+    #popup_1 { position: absolute; visibility:visible;
       background-color: #c4ff2049; padding: 10px; border-radius: 5px;
-      left: 200px; top: 900px; width:50%; height: 20%;
+      /* left: 200px;  top: 900px; */
+      width:600px; height: 20%;
     }
     #popup_1 #title { color: white; font-weight: 700; }
     #popup_1 #msg_1 { color: white; }
+    /* https://www.w3schools.com/css/css_align.asp 
+       https://www.w3schools.com/css/css3_2dtransforms.asp */
+    .horz_center {
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .vert_center {
+      top: 70%;
+      transform: translate(-50%, -50%);
+    }
   </style>
 
   <!--
@@ -43,7 +54,7 @@
   <div id="content">
     <div id="content_title"></div>
 
-    <div id="popup_1">
+    <div id="popup_1" class="horz_center vert_center">
       <div id="title">title</div>
       <div id="msg_1">텍스트 출력</div>
       <div id="content">
@@ -56,16 +67,20 @@
       <script>var StartScene='CurveTestScene';</script> <!-- blast_scene, curve_test_scene -->
       <script src="./main.js"></script> <!-- 커브테스트씬에서는 type="module" 를 안붙여야 에러가 안나는데, 이유 아직 모름 -->
     </div>
-  
-  </div>
-</body>
+   </div>
 
-</html>
-
-<script>
-  let popup_1 = document.getElementById('popup_1');
+<script type="module">
+  import { makePopup } from './t_curve_test.js';
+  const p1 = makePopup('popup_1');
+//  document.addEventListener("DOMContentLoaded", function(){
+//    console.log('DOMContentLoaded');
+//   });
   //let coords = popup_1.getBoundingClientRect();
   //console.log(coords);
   //popup_1.style.left = "100px";
   //popup_1.style.top = "800px";
 </script>
+
+</body>
+</html>
+
