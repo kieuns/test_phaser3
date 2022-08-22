@@ -288,7 +288,6 @@ export class CurveTestScene extends Phaser.Scene
             line.y1 = spec.from.y;
             line.x2 = spec.to.x;
             line.y2 = spec.to.y;
-
             this._graphics.lineStyle(spec.fillStyle.size, spec.fillStyle.color, spec.fillStyle.alpha);
             this._graphics.strokeLineShape(line);
         }
@@ -299,7 +298,6 @@ export class CurveTestScene extends Phaser.Scene
             let spec = this.dotDataArr[i];
             dot.x = spec.to.x;
             dot.y = spec.to.y;
-
             this._graphics.fillStyle(spec.fillStyle.color, spec.fillStyle.alpha);
             this._graphics.fillPointShape(dot, spec.fillStyle.size);
         }
@@ -317,7 +315,7 @@ export class CurveTestScene extends Phaser.Scene
 
     run_lerpTest_1() {
         let lerp_1 = new Lerp1D();
-        lerp_1.setParam(2, -2);
+        lerp_1.setParam(100, -50);
         this._updateArr.add(lerp_1);
     }
     run_lerpTest_2() {

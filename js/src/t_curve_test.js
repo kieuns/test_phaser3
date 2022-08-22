@@ -28,12 +28,12 @@
 //     }
 // }
 
-function makePopup(elemId) {
+export function makePopup(elemId) {
     console.log(elemId);
     //return new PopupA(elemId);  
 }
 
-export { makePopup };
+
 
 // /** @param {string} elemId */
 // var PopupA = function(elemId) {
