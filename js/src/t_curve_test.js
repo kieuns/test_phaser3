@@ -3,34 +3,37 @@
 // Element : https://developer.mozilla.org/ko/docs/Web/API/Element
 // Document : https://developer.mozilla.org/ko/docs/Web/API/Document
 
-// export class PopupA
-// {
-//     /** @type {Element} */
-//     _rootElem = null;
-//     _x = 0;
-//     _y = 0;
-//     /** @param {string} elemId */
-//     constructor(elemId){
-//         this._rootElem = document.getElementById(elemId);
-//         console.log.apply(console, [this._rootElem]);
-//         // this._rootElem.style.left;
-//         // this._rootElem.style.top;
-//     }
-//     /** @param {boolean} show */
-//     show(show)
-//     {
-//         if(show) {
-//             this._rootElem.setAttribute("visibility", "visible");
-//         }
-//         else {
-//             this._rootElem.setAttribute("visibility", "hidden");
-//         }
-//     }
-// }
+export class PopupA
+{
+    /** @type {Element} */
+    _rootElem = null;
+    _x = 0;
+    _y = 0;
+    /** @param {string} elemId */
+    constructor(elemId){
+        this._rootElem = document.getElementById(elemId);
+        console.log.apply(console, [this._rootElem]);
+        // this._rootElem.style.left;
+        // this._rootElem.style.top;
+    }
+    /** @param {boolean} show */
+    show(show)
+    {
+        if(show) {
+            this._rootElem.setAttribute("visibility", "visible");
+        }
+        else {
+            this._rootElem.setAttribute("visibility", "hidden");
+        }
+    }
+}
 
+// https://stackoverflow.com/questions/57602686/javascript-function-wont-trigger-when-called-in-html-file-during-parcel-build
+
+// or make ts
 export function makePopup(elemId) {
     console.log(elemId);
-    //return new PopupA(elemId);  
+    //return new PopupA(elemId);
 }
 
 

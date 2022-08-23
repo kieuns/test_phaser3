@@ -6,17 +6,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(parcel) Launch Chrome",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:8000",
+            "webRoot": "${workspaceFolder}",
+            "breakOnLoad": true,
+            "sourceMapPathOverrides": {
+                "../*": "${webRoot}/*"
+              }
+        },
+        {
             "name": "Launch localhost",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost:8000/",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
-            "type": "chrome",
-            "request": "attach",
-            "name": "Attach Chrome against localhost",
-            "port": 8000,
             "url": "http://localhost:8000/",
             "webRoot": "${workspaceFolder}"
         }

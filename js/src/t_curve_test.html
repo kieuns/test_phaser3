@@ -28,7 +28,7 @@
     }
     #popup_1 #title { color: white; font-weight: 700; }
     #popup_1 #msg_1 { color: white; }
-    /* https://www.w3schools.com/css/css_align.asp 
+    /* https://www.w3schools.com/css/css_align.asp
        https://www.w3schools.com/css/css3_2dtransforms.asp */
     .horz_center {
       left: 50%;
@@ -62,16 +62,16 @@
         <input name="p1" value="-50">
       </div>
     </div>
-      
+
     <div id="game_main">
       <script>var StartScene='CurveTestScene';</script> <!-- blast_scene, curve_test_scene -->
       <script src="./main.js"></script> <!-- 커브테스트씬에서는 type="module" 를 안붙여야 에러가 안나는데, 이유 아직 모름 -->
     </div>
    </div>
 
-<script src="t_curve_test.js"></script>
-<script>
-  //import { makePopup } from './t_curve_test.js';
+<script type="module">
+  //makePopup('abcde');
+  //import { makePopup } from "./t_curve_test.js";
   //const p1 = makePopup('popup_1');
 //  document.addEventListener("DOMContentLoaded", function(){
 //    console.log('DOMContentLoaded');
