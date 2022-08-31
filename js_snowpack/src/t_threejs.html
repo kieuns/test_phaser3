@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- no cache -->
+  <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+  <META HTTP-EQUIV="Expires" CONTENT="-1">
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="keywords" content="phaser3">
+  <meta name="description" content="">
+  <!-- 나중에 되살리자
+  <meta name="full-screen" content="yes" />
+  <meta name="screen-orientation" content="portrait" />
+  -->
+  <style type="text/css">
+    body { padding: 0px; margin: 0px; background-color: #424242f3; }
+    #game_main { width: 100vw; height: 100vh; }
+    /* 보이는 화면 크기에 맞추도록. 뷰포트(vw, vh)값을 설정 */
+  </style>
+  <title>three.js </title>
+
+<!--
+  =======================================================================================================================
+  Three.js Script
+  https://threejs.org/docs/#manual/ko/introduction/Installation
+  =======================================================================================================================
+-->
+  <!-- 임포트맵 : 잘 안되네. -->
+  <!-- <script type="importmap">
+    {
+      "imports":{
+        "three" : "https://unpkg.com/three@0.141.0/build/three.module.js",
+        "GLTFLoader" : "https://unpkg.com/three@0.141.0/examples/jsm/loaders/GLTFLoader.js",
+        "OrbitControls" : "https://unpkg.com/three@0.141.0/examples/jsm/controls/OrbitControls.js"
+      }
+    }
+  </script> -->
+
+</head>
+<body>
+  <canvas id="main_canvas" width="600" height="800"></canvas>
+</body>
+</html>
+
+<script type="module">
+// Find the latest version by visiting https://cdn.skypack.dev/three.
+//import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.141.0-LAbt1oof2qE22eZZS1lO/mode=imports/optimized/three.js';
+//import { OrbitControls } from 'https://cdn.skypack.dev/pin/three@v0.141.0-LAbt1oof2qE22eZZS1lO/mode=raw/examples/jsm/controls/OrbitControls.js';
+
+import * as THREE from 'three';
+//import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
+//import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera.position.z = 5;
+
+const renderer = new THREE.WebGLRenderer({ canvas:document.querySelector('#main_canvas'), antialias:true });
+
+const controls = new OrbitControls( camera, renderer.domElement );
+
+let loader = new GLTFLoader();
+// model from : https://skfb.ly/6WxVW
+loader.load('/assets/shiba_3d/scene.gltf', function(gltf) {
+  scene.add(gltf.scene);
+});
+
+const light = new THREE.DirectionalLight( 0xFFFFFF );
+const helper = new THREE.DirectionalLightHelper( light, 8 );
+scene.add( helper );
+
+// simple-1
+if(false) {
+  const geometry = new THREE.PlaneGeometry( 5, 5 );
+  const material = new THREE.MeshBasicMaterial( {color: 0xffffff, side: THREE.DoubleSide } );
+  const plane = new THREE.Mesh( geometry, material );
+  scene.add( plane );
+  plane.position.x = 0; plane.position.y = -1; plane.rotateX(Math.PI/2);
+}
+if(true) {
+  // wireframe 같이 표시
+  const group = new THREE.Group();
+  const geometry = new THREE.PlaneGeometry( 5, 5 );
+
+  const lineMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0.5 } );
+  const meshMaterial = new THREE.MeshPhongMaterial( { color: 0x156289, emissive: 0x072534, side: THREE.DoubleSide, flatShading: true } );
+
+  group.add( new THREE.LineSegments(geometry, lineMaterial) );
+  group.add( new THREE.Mesh(geometry, meshMaterial) );
+
+  scene.add( group );
+  group.position.x = 0; group.position.y = -1; group.rotateX(Math.PI/2);
+}
+
+function animate() {
+	requestAnimationFrame( animate );
+	renderer.render( scene, camera );
+}
+animate();
+</script>

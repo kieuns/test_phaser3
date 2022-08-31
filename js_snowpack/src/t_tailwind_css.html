@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- no cache -->
+  <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+  <META HTTP-EQUIV="Expires" CONTENT="-1">
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="keywords" content="phaser3">
+  <meta name="description" content="">
+  <!-- 나중에 되살리자
+  <meta name="full-screen" content="yes" />
+  <meta name="screen-orientation" content="portrait" />
+  -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style type="text/css">
+    body { padding: 0px; margin: 0px; background-color: #5f5f5f; }
+    /* #game_main { width: 100vw; height: 100vh; } */ /* 보이는 화면 크기에 맞추도록. 뷰포트(vw, vh)값을 설정 */
+  </style>
+  <script src="./../node_modules/phaser/dist/phaser.js"></script>
+  <!-- https://tailwindcss.com/docs/installation/play-cdn -->
+  <title>TailWindCSS</title>
+</head>
+
+<body>
+
+  <!-- <a href="./t_test_any.html">다른 페이지로 연결</a> -->
+
+  <div id="game_main"></div>
+
+  <div class="absolute inset-0 w-3/5">
+  <div class="p-6 mx-auto bg-white rounded-xl shadow-lg flex items-center space-x-4">
+    <div class="shrink-0">
+      <img class="h-12 w-12" src="/assets/balloon.png" alt="ChitChat Logo">
+    </div>
+    <div>
+      <div class="text-xl font-medium text-black">ChitChat</div>
+      <p class="text-slate-500">You have a new message!</p>
+    </div>
+  </div>
+  </div>
+
+</body>
+
+</html>
+
+
+<!--
+  =======================================================================================================================
+  Phaser Script
+  =======================================================================================================================
+-->
+<script type="module">
+  class TestScene extends Phaser.Scene
+  {
+    moving = {
+      /** @type {Phaser.GameObject.Images} */
+      img: null,
+      /** @type {Phaser.Math.Vector2} */
+      destPos: new Phaser.Math.Vector2(0, 0),
+      /** @type {Phaser.Math.Vector2} */
+      prevPos: new Phaser.Math.Vector2(0, 0),
+      percentT: 0,
+      nowRotation: 0,
+      nextRotation: 0,
+      MovingPixelPerSec:80,
+      MovingPercentPerSec:0
+    };
+    constructor() {
+      super();
+      this._lineStyle = { fillStyle:{color:0x999999, size:1, alpha:1.0 } };
+    }
+    preload() {
+      this.load.image('box', 'assets/missile_a.png');
+    }
+    create() {
+      this.graphics = this.add.graphics();
+      this._lineGeom = new Phaser.Geom.Line(0, 0, 0, 0);
+
+      let cx = this.cameras.main.width / 2;
+      let cy = this.cameras.main.height / 2;
+
+      const button = document.createElement('div');
+      button.className = 'button is-primary';
+      button.innerText = 'CLICK';
+      this.add.dom(cx-100, cy-100, button);
+
+      this.moving.img = this.add.image(cx,cy,'box');
+      this.moving.img.setScale(0.3);
+      this.resetMoveParam();
+    }
+    resetMoveParam()
+    {
+      this.moving.prevPos.x = this.moving.img.x;
+      this.moving.prevPos.y = this.moving.img.y;
+
+      let img_half_w = this.moving.img.displayWidth/2;
+      let img_half_h = this.moving.img.displayHeight/2;
+
+      this.moving.destPos.x = Phaser.Math.Between(img_half_w, this.cameras.main.displayWidth-img_half_w);
+      this.moving.destPos.y = Phaser.Math.Between(img_half_h, this.cameras.main.displayHeight-img_half_h);
+
+      //(Math.PI/2) 오른쪽이 0도이므로 돌려진 값을 더한다.
+      this.moving.nextRotation = this.moving.destPos.clone().subtract(this.moving.prevPos).angle() + (Math.PI/2);
+      //this.moving.img.setRotation(this.moving.nextRotation);
+
+      let dist = this.moving.destPos.distance(this.moving.img);
+      this.moving.MovingPercentPerSec = this.moving.MovingPixelPerSec / dist;
+
+      console.log('NewPos: dist-pixel:', dist, ' : Percent-Unit: ', this.moving.MovingPercentPerSec);
+
+      this.moving.percentT = 0;
+    }
+    update(time, dt) {
+      let ms_dt = (dt / 1000);
+
+      let new_rotation = Phaser.Math.RotateTo(this.moving.nextRotation, this.moving.img.rotation);
+      //console.log(new_rotation, this.moving.img.rotation, this.moving.nextRotation);
+      this.moving.img.rotation = new_rotation;
+
+      let nx = this.moving.prevPos.clone().lerp(this.moving.destPos, this.moving.percentT);
+      this.moving.img.x = nx.x;
+      this.moving.img.y = nx.y;
+
+      this.moving.percentT += (ms_dt * this.moving.MovingPercentPerSec);
+      //console.log('MovT: ', this.moving.percentT);
+
+      if(this.moving.percentT > 1) {
+        this.resetMoveParam();
+      }
+
+      this.graphics.clear();
+      this.graphics.lineStyle(this._lineStyle.fillStyle.size, this._lineStyle.fillStyle.color, this._lineStyle.fillStyle.alpha);
+      this._lineGeom.x1 = nx.x;
+      this._lineGeom.y1 = nx.y;
+      this._lineGeom.x2 = this.moving.destPos.x;
+      this._lineGeom.y2 = this.moving.destPos.y;
+      this.graphics.strokeLineShape(this._lineGeom);
+
+    }
+  }
+
+  const config = {
+    type: Phaser.AUTO,
+    dom: { createContainer: true }, // 페이져에서 돔 엘리먼트 사용하게 하기
+    parent: 'game_main',
+    width: 600,
+    height: 800,
+    backgroundColor: '#2d2d2d',
+    //scale: { autoCenter: Phaser.Scale.CENTER_BOTH, mode: Phaser.Scale.FIT },
+    scale: { autoCenter: Phaser.Scale.CENTER_BOTH },
+    scene: [TestScene]
+  };
+  const game = new Phaser.Game(config);
+</script>
+

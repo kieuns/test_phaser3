@@ -1,0 +1,10 @@
+
+# example web
+
+* web-root : https://phaser.io/examples/v3/category/scenes
+* example github : https://github.com/photonstorm/phaser3-examples
+
+# scenes
+
+* web-exam : https://phaser.io/examples/v3/category/scenes
+
