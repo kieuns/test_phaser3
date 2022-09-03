@@ -1,7 +1,6 @@
-<!-- https://bulma.io/documentation/overview/start/ -->
-
 <!DOCTYPE html>
 <html>
+<!-- https://bulma.io/documentation/overview/start/ -->
 
 <head>
   <!-- no cache -->
@@ -15,10 +14,6 @@
   <meta name="description" content="">
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-
-  <script src="./../node_modules/animejs/lib/anime.js"></script>
-  <script src="./../node_modules/phaser/dist/phaser.js"></script>
-  <!-- <script src="./lib/phaser-3.55.2/phaser.js"></script> -->
 
   <title>Bulma CSS</title>
 
@@ -204,27 +199,29 @@
   Phaser Script
   =======================================================================================================================
 -->
+<script src="//cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
 <script>
+  //import Phaser from 'phaser';
   class TestScene extends Phaser.Scene
   {
-    moving = {
-      /** @type {Phaser.GameObject.Images} */
-      img: null,
-      /** @type {Phaser.Math.Vector2} */
-      destPos: new Phaser.Math.Vector2(0, 0),
-      /** @type {Phaser.Math.Vector2} */
-      prevPos: new Phaser.Math.Vector2(0, 0),
-      percentT: 0,
-      nowRotation: 0,
-      nextRotation: 0,
-      MovingPixelPerSec:80,
-      MovingPercentPerSec:0
-    };
     constructor() {
       super();
+      this.moving = {
+        /** @type {Phaser.GameObject.Images} */
+        img: null,
+        /** @type {Phaser.Math.Vector2} */
+        destPos: new Phaser.Math.Vector2(0, 0),
+        /** @type {Phaser.Math.Vector2} */
+        prevPos: new Phaser.Math.Vector2(0, 0),
+        percentT: 0,
+        nowRotation: 0,
+        nextRotation: 0,
+        MovingPixelPerSec:80,
+        MovingPercentPerSec:0
+      };
     }
     preload() {
-      this.load.image('box', 'assets/box.png');
+      this.load.image('box', '/assets/box.png');
     }
     create() {
       let cx = this.cameras.main.width / 2;
@@ -264,7 +261,7 @@
       let ms_dt = (dt / 1000);
 
       let new_rotation = Phaser.Math.RotateTo(this.moving.nextRotation, this.moving.img.rotation);
-      //console.log(new_rotation, this.moving.img.rotation, this.moving.nextRotation);
+      console.log(new_rotation, this.moving.img.rotation, this.moving.nextRotation);
       this.moving.img.rotation = new_rotation;
 
       let nx = this.moving.prevPos.clone().lerp(this.moving.destPos, this.moving.percentT);

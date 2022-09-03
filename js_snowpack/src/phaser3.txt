@@ -8,3 +8,14 @@
 
 * web-exam : https://phaser.io/examples/v3/category/scenes
 
+# reference
+
+* 도움말
+* 페이져3 메인 : https://photonstorm.github.io/phaser3-docs/Phaser.html
+* game : https://photonstorm.github.io/phaser3-docs/Phaser.Game.html
+* game.scene : https://photonstorm.github.io/phaser3-docs/Phaser.Scenes.SceneManager.html
+* https://photonstorm.github.io/phaser3-docs/Phaser.Scene.html
+* 카메라 : https://photonstorm.github.io/phaser3-docs/Phaser.Cameras.Scene2D.Camera.html#width__anchor
+* 입력 : https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputManager.html (game.input)
+* 입력 이벤트 : https://photonstorm.github.io/phaser3-docs/Phaser.Input.Events.html
+* https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html (this.input)

@@ -1,3 +1,11 @@
+<!--
+  =======================================================================================================================
+  Three.js Script
+  https://threejs.org/docs/#manual/ko/introduction/Installation
+  =======================================================================================================================
+  other: https://threejs.org/docs/#manual/ko/introduction/Installation
+-->
+
 <!DOCTYPE html>
 <html>
 
@@ -22,37 +30,23 @@
   </style>
   <title>three.js </title>
 
-<!--
-  =======================================================================================================================
-  Three.js Script
-  https://threejs.org/docs/#manual/ko/introduction/Installation
-  =======================================================================================================================
--->
-  <!-- 임포트맵 : 잘 안되네. -->
-  <!-- <script type="importmap">
-    {
-      "imports":{
-        "three" : "https://unpkg.com/three@0.141.0/build/three.module.js",
-        "GLTFLoader" : "https://unpkg.com/three@0.141.0/examples/jsm/loaders/GLTFLoader.js",
-        "OrbitControls" : "https://unpkg.com/three@0.141.0/examples/jsm/controls/OrbitControls.js"
-      }
-    }
-  </script> -->
-
 </head>
 <body>
   <canvas id="main_canvas" width="600" height="800"></canvas>
-</body>
-</html>
 
+<!-- 임포트맵 : 잘 안되네.
+<script type="importmap">
+{
+  "imports":{
+    "three" : "https://unpkg.com/three@0.141.0/build/three.module.js",
+    "gltfloader" : "https://unpkg.com/three@0.141.0/examples/jsm/loaders/GLTFLoader.js",
+    "orbitcontrols" : "https://unpkg.com/three@0.141.0/examples/jsm/controls/OrbitControls.js"
+  }
+}
+</script>
+-->
 <script type="module">
-// Find the latest version by visiting https://cdn.skypack.dev/three.
-//import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.141.0-LAbt1oof2qE22eZZS1lO/mode=imports/optimized/three.js';
-//import { OrbitControls } from 'https://cdn.skypack.dev/pin/three@v0.141.0-LAbt1oof2qE22eZZS1lO/mode=raw/examples/jsm/controls/OrbitControls.js';
-
 import * as THREE from 'three';
-//import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
-//import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const scene = new THREE.Scene();
 
@@ -102,3 +96,7 @@ function animate() {
 }
 animate();
 </script>
+
+
+</body>
+</html>

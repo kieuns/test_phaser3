@@ -12,11 +12,11 @@
 // https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html (this.input)
 
 import Phaser from 'phaser';
-import { CurveTestScene } from './t_CurveTestScene';
-import { TestAnyScene } from './t_TestAnyScene';
-import { TickTestScene } from './t_TickTestScene';
+import { CurveTestScene } from './CurveTestScene';
+import { TestAnyScene } from './TestAnyScene';
+import { TickTestScene } from './TickTestScene';
 import { BlastScene } from './BlastScene';
-import { ObjectMoveScene } from './t_ObjectMoveScene';
+import { ObjectMoveScene } from './ObjectMoveScene';
 import { GameData, GameOption, GameStat } from './lib_common';
 
 
@@ -58,7 +58,7 @@ function preload_global()
     game.scene.add('TickTest', TickTestScene);
     game.scene.add('ObjectMove', ObjectMoveScene);
 
-    let start_scene_name = 'BlastScene';    
+    let start_scene_name = 'BlastScene';
     if(StartScene) {
         console.log('FirstScene: ', StartScene);
         start_scene_name = StartScene;
@@ -105,7 +105,7 @@ export function makeBasicPhaserConfig()
 }
 
 /** @returns {Phaser.Game} new_game */
-function makePhaser(config) 
+function makePhaser(config)
 {
     let new_game = new Phaser.Game(config);
     console.log("Phaser.Game() make done. begin default scene");

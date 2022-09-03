@@ -60,4 +60,16 @@ export class TwoDimArray
         }
     }
 
+    /**
+     * @param {any[][]} twoDimArr
+     * @param {(v:any, x:number, y:number, arr:any[][])=>boolean} forEachCallback
+     */
+    static ForEach(twoDimArr, forEachCallback) {
+        for (let x = 0; x < twoDimArr.length; x++) {
+            for (let y = 0; y < twoDimArr[x].length; y++) {
+                let ret = forEachCallback(twoDimArr[x][y], x, y, twoDimArr);
+                if(!ret) { break; }
+            }
+        }
+    }
 }
