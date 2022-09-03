@@ -9,8 +9,7 @@
     "animejs": "^3.2.1",
     "dat.gui": "^0.7.9",
     "phaser": "^3.55.2",
-    "three": "^0.143.0",
-    "three-addons": "^1.2.0"
+    "three": "^0.143.0"
   },
   "exports": {}
 }

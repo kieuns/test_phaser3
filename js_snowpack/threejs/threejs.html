@@ -1,11 +1,3 @@
-<!--
-  =======================================================================================================================
-  Three.js Script
-  https://threejs.org/docs/#manual/ko/introduction/Installation
-  =======================================================================================================================
-  other: https://threejs.org/docs/#manual/ko/introduction/Installation
--->
-
 <!DOCTYPE html>
 <html>
 
@@ -45,8 +37,11 @@
 }
 </script>
 -->
+
 <script type="module">
 import * as THREE from 'three';
+import {GLTFLoader} from './GLTFLoader.js';
+import {OrbitControls} from './OrbitControls.js';
 
 const scene = new THREE.Scene();
 
@@ -100,3 +95,11 @@ animate();
 
 </body>
 </html>
+
+<!--
+  =======================================================================================================================
+  Three.js Script
+  https://threejs.org/docs/#manual/ko/introduction/Installation
+  =======================================================================================================================
+  other: https://threejs.org/docs/#manual/ko/introduction/Installation
+-->
