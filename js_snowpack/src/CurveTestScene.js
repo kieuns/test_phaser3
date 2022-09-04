@@ -41,6 +41,7 @@ sprite.on('pointerdown', callback, context);
 //#endregion
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 매뉴얼 업데이터
 
 /** ManualUpdate 배열 저장, 이터레이션 처리 */
 export class ManualUpdateArray
@@ -129,6 +130,7 @@ export class ManualUpdate
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 페이져 그래픽 오브젝트 풀
 
 export class PhaserGraphicObjectPool
 {
@@ -267,8 +269,7 @@ export class PhaserGraphicObjectPool
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
+// 커브 테스트 씬 (메인)
 
 export class CurveTestScene extends Phaser.Scene
 {
@@ -432,7 +433,7 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt3bz = new NPointsBezier(3, point3_bezier_3);
-            pt3bz.setGraphicPool(this._graphicPool);
+            if(pt3bz.setGraphicPool) { pt3bz.setGraphicPool(this._graphicPool); }
             pt3bz.setStep(0.05);
             pt3bz.setPoints(60, 535, 330, 215, 616, 535);
             pt3bz.setWorkCallback((time, delta) => {
@@ -447,7 +448,6 @@ export class CurveTestScene extends Phaser.Scene
         if(type === 0)
         {
             let pt4bz = new Point4Bezier1();
-            pt4bz.setGraphicPool(this._graphicPool);
             pt4bz.setParam(69, 676, 165, 460, 482, 455, 570, 676, 0.05);
             pt4bz.setWorkCallback((time, delta) => {
                 this.clickBox1.x = pt4bz.get_x();
@@ -458,7 +458,7 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt4bz = new NPointsBezier(4, point4_bezier_2);
-            pt4bz.setGraphicPool(this._graphicPool);
+            if(pt4bz.setGraphicPool) { pt4bz.setGraphicPool(this._graphicPool); }
             pt4bz.setStep(0.05);
             //pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676);
             pt4bz.setPoints(152, 777, 137, 485, 425, 247, 715, 273);
@@ -747,17 +747,6 @@ class Point3Bezier extends ManualUpdate
     }
 }
 
-/**
- * @example
- * let pt4bz = new NPointsBezier( (좌표 개수) 4,  (베지어 콜백 함수) point4_bezier_2);
- * pt4bz.setStep(0.05); // t의 증가값
- * pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676); // x1, y1, x2, y2, ...
- * pt4bz.setWorkCallback((time, delta) => {
- *   this.clickBox1.x = pt4bz.get_x();
- *   this.clickBox1.y = pt4bz.get_y();
- * });
- * this._updateArr.add(pt4bz);
- */
 class Point4Bezier1 extends ManualUpdate
 {
     /** @type {XY} */
@@ -881,6 +870,17 @@ let BezierLineTrackHelp =
     helperExist() { return true; }
 }
 
+/** N차 베지어 곡선을 처리할 클래스. 베지어 함수와 커브를 그릴 좌표는 지정해줘야한다.
+ * @example
+ * let pt4bz = new NPointsBezier( (좌표 개수) 4,  (베지어 콜백 함수) point4_bezier_2);
+ * pt4bz.setStep(0.05); // t의 증가값
+ * pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676); // x1, y1, x2, y2, ...
+ * pt4bz.setWorkCallback((time, delta) => {
+ *   this.clickBox1.x = pt4bz.get_x();
+ *   this.clickBox1.y = pt4bz.get_y();
+ * });
+ * this._updateArr.add(pt4bz);
+ */
 class NPointsBezier extends ManualUpdate
 {
     /** @type {XY} */
@@ -976,6 +976,8 @@ class NPointsBezier extends ManualUpdate
     }
 }
 
+// 'NPointsBezier'에 'BezierLineTrackHelp'를 붙인다
+// 개별 오브젝트에 붙이기: Object.assign( <Instance>, BezierLineTrackHelp);
 Object.assign(NPointsBezier.prototype, BezierLineTrackHelp);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
