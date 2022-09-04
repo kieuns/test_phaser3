@@ -401,6 +401,7 @@ export class CurveTestScene extends Phaser.Scene
     }
     run_lerpTest_2() {
         let lerp_2 = new Lerp2D();
+        if(lerp_2.helperExist) { lerp_2.setGraphicPool(this._graphicPool); }
         lerp_2.setParam(100, 20, 400, 400, 0.05);
         lerp_2.setWorkCallback((time, delta) => {
             this.clickBox1.x = lerp_2.get_x();
@@ -410,6 +411,7 @@ export class CurveTestScene extends Phaser.Scene
     }
     run_pt3_bezier_1() {
         let pt3bz = new Point3Bezier();
+        if(pt3bz.helperExist) { pt3bz.setGraphicPool(this._graphicPool); }
         pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
         pt3bz.setWorkCallback((time, delta) => {
             this.clickBox1.x = pt3bz.get_x();
@@ -433,7 +435,7 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt3bz = new NPointsBezier(3, point3_bezier_3);
-            if(pt3bz.setGraphicPool) { pt3bz.setGraphicPool(this._graphicPool); }
+            if(pt3bz.helperExist) { pt3bz.setGraphicPool(this._graphicPool); }
             pt3bz.setStep(0.05);
             pt3bz.setPoints(60, 535, 330, 215, 616, 535);
             pt3bz.setWorkCallback((time, delta) => {
@@ -458,7 +460,7 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt4bz = new NPointsBezier(4, point4_bezier_2);
-            if(pt4bz.setGraphicPool) { pt4bz.setGraphicPool(this._graphicPool); }
+            if(pt4bz.helperExist) { pt4bz.setGraphicPool(this._graphicPool); }
             pt4bz.setStep(0.05);
             //pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676);
             pt4bz.setPoints(152, 777, 137, 485, 425, 247, 715, 273);
@@ -549,275 +551,6 @@ async function startLerp2D_ClickLocationGuide(scene)
     await guide.playStep();
 
     let click_pos = guide.getClickedLocations();
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/** 일반 숫자 A->B로 보간되는 과정 처리 클래스 */
-class Lerp1D extends ManualUpdate
-{
-    constructor()
-    {
-        super();
-        this.p0 = 0;
-        this.p0_ing = 0;
-        this.p1 = 0;
-        this.t = 0;
-        this.tstep = 0.1;
-    }
-
-    setParam(p0, p1)
-    {
-        this.p0 = p0;
-        this.p0_ing = p0;
-        this.p1 = p1;
-        this.t = 0;
-    }
-
-    update(time, delta)
-    {
-        if(this.t > 1) {
-            console.log('> dead-self');
-            this.stop(true);
-            return false;
-        }
-
-        if(this._started) {
-            this.p0_ing = lerp_1(this.p0, this.p1, this.t);
-            this.realWork(time, delta);
-            this.t += this.tstep;
-        }
-        return true;
-    }
-
-    realWork(time, delta)
-    {
-        let str1 = ' p0:' + this.p0.toFixed(2) + ' -> p1:' + this.p1.toFixed(2);
-        console.log.apply(console, ['Lerp1D: p0_ing:', this.p0_ing.toFixed(2), ', t:',this.t.toFixed(2), ', ', str1 ]);
-        this.onUpdate(time, delta);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/** XY 클래스값을 A->B로 보간되는 과정 처리 클래스 */
-class Lerp2D extends ManualUpdate
-{
-    /** @type {XY} */
-    p0 = new XY();
-
-    /** @type {XY} */
-    p0_ing = new XY();
-
-    /** @type {XY} */
-    p1 = new XY();
-
-    /** @type {number} */
-    t = 0;
-
-    /** @type {number} */
-    tstep = 0;
-
-    constructor()
-    {
-        super();
-        this.p0.set(0,0);
-        this.p0_ing.set(0,0);
-        this.p1.set(0,0);
-        this.t = 0;
-        this.tstep = 0.1;
-    }
-
-    get_x() { return this.p0_ing.x; }
-    get_y() { return this.p0_ing.y; }
-
-
-    setParam(x1, y1, x2, y2, tStep)
-    {
-        this.p0.set(x1, y1);
-        this.p0_ing.set(x1, y1);
-        this.p1.set(x2, y2);
-        this.t = 0;
-        this.tstep = tStep ? tStep : 0.1;
-    }
-
-    update(time, delta)
-    {
-        //if(Math.floor(this.t) > 1) { // 테스트해볼 코드 > 한단계 남겨두고 멈춰서 못쓸것
-        // this.t 가 부동소수점으로 (1.0000000000000002 가 되어서 1보다 큰 경우가 있음)
-        //if(this.t >= (1 + this.tstep)) {
-        if(this.t > 1.01) {
-            console.log('> Lerp2D:dead-self');
-            this.stop(true);
-            return false;
-        }
-
-        if(this._started) {
-            lerp_2(this.p0, this.p1, this.t, this.p0_ing);
-            this.realWork(time, delta);
-            this.t += this.tstep;
-            //console.log(this.t);
-        }
-        return true;
-    }
-
-    realWork(time, delta)
-    {
-        console.log.apply(console, ['Lerp2D:p0_ing:', this.p0_ing.toString(), ', t:',this.t.toFixed(2), ', p0:', this.p0.toString(), ', p1:', this.p1.toString()]);
-        this.onUpdate(time, delta);
-    }
-}
-
-class Point3Bezier extends ManualUpdate
-{
-    /** @type {XY} */
-    pt_ing = new XY();
-
-    /** @type {XY} */
-    p0 = new XY();
-
-    /** @type {XY} */
-    p1 = new XY();
-
-    /** @type {XY} */
-    p2 = new XY();
-
-    /** @type {number} */
-    t = 0;
-
-    /** @type {number} */
-    tstep = 0;
-
-    /** @type {number} */
-    calcType = 1;
-
-    constructor()
-    {
-        super();
-        this.pt_ing.set(0,0);
-        this.p0.set(0,0);
-        this.p1.set(0,0);
-        this.p2.set(0,0);
-        this.t = 0;
-        this.tstep = 0.1;
-    }
-    get_x() { return this.pt_ing.x; }
-    get_y() { return this.pt_ing.y; }
-
-
-    setParam(x1, y1, x2, y2, x3, y3, tStep)
-    {
-        this.pt_ing.set(x1, y1);
-        this.p0.set(x1, y1);
-        this.p1.set(x2, y2);
-        this.p2.set(x3, y3);
-        this.t = 0;
-        this.tstep = tStep ? tStep : 0.1;
-    }
-
-    update(time, delta)
-    {
-        if(this.t > 1) {
-            console.log('> Point3Bezier:dead-self');
-            this.stop(true);
-            return false;
-        }
-
-        if(this._started) {
-            if(this.calcType === 2) {
-                let a = point3_bezier_2(this.p0, this.p1, this.p2, this.t, this.pt_ing);
-                this.pt_ing.x = a.x;
-                this.pt_ing.y = a.y;
-            }
-            else {
-                point3_bezier_1(this.p0, this.p1, this.p2, this.t, this.pt_ing);
-            }
-            this.realWork(time, delta);
-            this.t += this.tstep;
-            //console.log(this.t);
-        }
-        return true;
-    }
-
-    realWork(time, delta)
-    {
-        console.log.apply(console, ['Point3Bezier:pt_ing:', this.pt_ing.toString(), '(',this.t.toFixed(2), ') p0:', this.p0.toString(), ', p1:', this.p1.toString(), ', p2:', this.p2.toString()]);
-        this.onUpdate(time, delta);
-    }
-}
-
-class Point4Bezier1 extends ManualUpdate
-{
-    /** @type {XY} */
-    pt_ing = new XY();
-
-    /** @type {XY} */
-    p0 = new XY();
-
-    /** @type {XY} */
-    p1 = new XY();
-
-    /** @type {XY} */
-    p2 = new XY();
-
-    /** @type {XY} */
-    p3 = new XY();
-
-    /** @type {number} */
-    pointNum = 4;
-
-    /** @type {number} */
-    t = 0;
-
-    /** @type {number} */
-    tstep = 0;
-
-    /** @type {number} */
-    calcType = 1;
-
-    constructor() {
-        super();
-        this.pt_ing.set(0,0);
-        this.p0.set(0,0);
-        this.p1.set(0,0);
-        this.p2.set(0,0);
-        this.p3.set(0,0);
-        this.t = 0;
-        this.tstep = 0.1;
-    }
-
-    get_x() { return this.pt_ing.x; }
-    get_y() { return this.pt_ing.y; }
-
-    setParam(x1, y1, x2, y2, x3, y3, x4, y4, tStep) {
-        this.pt_ing.set(x1, y1);
-        this.p0.set(x1, y1);
-        this.p1.set(x2, y2);
-        this.p2.set(x3, y3);
-        this.p3.set(x4, y4);
-        this.t = 0;
-        this.tstep = tStep ? tStep : 0.1;
-    }
-
-    update(time, delta) {
-        if(this.t > 1) {
-            console.log('> Point3Bezier:dead-self');
-            this.stop(true);
-            return false;
-        }
-
-        if(this._started) {
-            point4_bezier_1(this.p0, this.p1, this.p2, this.p3, this.t, this.pt_ing);
-            this.realWork(time, delta);
-            this.t += this.tstep;
-        }
-        return true;
-    }
-
-    realWork(time, delta) {
-        this.onUpdate(time, delta);
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -980,6 +713,291 @@ class NPointsBezier extends ManualUpdate
 // 개별 오브젝트에 붙이기: Object.assign( <Instance>, BezierLineTrackHelp);
 Object.assign(NPointsBezier.prototype, BezierLineTrackHelp);
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/** 일반 숫자 A->B로 보간되는 과정 처리 클래스 */
+class Lerp1D extends ManualUpdate
+{
+    constructor()
+    {
+        super();
+        this.p0 = 0;
+        this.p0_ing = 0;
+        this.p1 = 0;
+        this.t = 0;
+        this.tstep = 0.1;
+    }
+
+    setParam(p0, p1)
+    {
+        this.p0 = p0;
+        this.p0_ing = p0;
+        this.p1 = p1;
+        this.t = 0;
+    }
+
+    update(time, delta)
+    {
+        if(this.t > 1) {
+            console.log('> dead-self');
+            this.stop(true);
+            return false;
+        }
+
+        if(this._started) {
+            this.p0_ing = lerp_1(this.p0, this.p1, this.t);
+            this.realWork(time, delta);
+            this.t += this.tstep;
+        }
+        return true;
+    }
+
+    realWork(time, delta)
+    {
+        let str1 = ' p0:' + this.p0.toFixed(2) + ' -> p1:' + this.p1.toFixed(2);
+        console.log.apply(console, ['Lerp1D: p0_ing:', this.p0_ing.toFixed(2), ', t:',this.t.toFixed(2), ', ', str1 ]);
+        this.onUpdate(time, delta);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/** XY 클래스값을 A->B로 보간되는 과정 처리 클래스 */
+class Lerp2D extends ManualUpdate
+{
+    /** @type {XY} */
+    p0 = new XY();
+
+    /** @type {XY} */
+    p0_ing = new XY();
+
+    /** @type {XY} */
+    p1 = new XY();
+
+    /** @type {number} */
+    t = 0;
+
+    /** @type {number} */
+    tstep = 0;
+
+    constructor()
+    {
+        super();
+        this.p0.set(0,0);
+        this.p0_ing.set(0,0);
+        this.p1.set(0,0);
+        this.t = 0;
+        this.tstep = 0.1;
+    }
+
+    get_x() { return this.p0_ing.x; }
+    get_y() { return this.p0_ing.y; }
+
+
+    setParam(x1, y1, x2, y2, tStep)
+    {
+        this.p0.set(x1, y1);
+        this.p0_ing.set(x1, y1);
+        this.p1.set(x2, y2);
+        this.t = 0;
+        this.tstep = tStep ? tStep : 0.1;
+
+        if(this.helperExist) {
+            let pts = [];
+            pts.push(this.p0); pts.push(this.p1);
+            this.makeBezierSourceTrack(pts);
+        }
+    }
+
+    update(time, delta)
+    {
+        //if(Math.floor(this.t) > 1) { // 테스트해볼 코드 > 한단계 남겨두고 멈춰서 못쓸것
+        // this.t 가 부동소수점으로 (1.0000000000000002 가 되어서 1보다 큰 경우가 있음)
+        //if(this.t >= (1 + this.tstep)) {
+        if(this.t > 1.01) {
+            console.log('> Lerp2D:dead-self');
+            this.stop(true);
+            return false;
+        }
+
+        if(this._started) {
+            lerp_2(this.p0, this.p1, this.t, this.p0_ing);
+            this.realWork(time, delta);
+            this.t += this.tstep;
+            //console.log(this.t);
+        }
+        return true;
+    }
+
+    realWork(time, delta)
+    {
+        console.log.apply(console, ['Lerp2D:p0_ing:', this.p0_ing.toString(), ', t:',this.t.toFixed(2), ', p0:', this.p0.toString(), ', p1:', this.p1.toString()]);
+        this.onUpdate(time, delta);
+    }
+}
+Object.assign(Lerp2D.prototype, BezierLineTrackHelp);
+
+class Point3Bezier extends ManualUpdate
+{
+    /** @type {XY} */
+    pt_ing = new XY();
+
+    /** @type {XY} */
+    p0 = new XY();
+
+    /** @type {XY} */
+    p1 = new XY();
+
+    /** @type {XY} */
+    p2 = new XY();
+
+    /** @type {number} */
+    t = 0;
+
+    /** @type {number} */
+    tstep = 0;
+
+    /** @type {number} */
+    calcType = 1;
+
+    constructor()
+    {
+        super();
+        this.pt_ing.set(0,0);
+        this.p0.set(0,0);
+        this.p1.set(0,0);
+        this.p2.set(0,0);
+        this.t = 0;
+        this.tstep = 0.1;
+    }
+    get_x() { return this.pt_ing.x; }
+    get_y() { return this.pt_ing.y; }
+
+
+    setParam(x1, y1, x2, y2, x3, y3, tStep)
+    {
+        this.pt_ing.set(x1, y1);
+        this.p0.set(x1, y1);
+        this.p1.set(x2, y2);
+        this.p2.set(x3, y3);
+        this.t = 0;
+        this.tstep = tStep ? tStep : 0.1;
+
+        if(this.helperExist) {
+            let pts = [];
+            pts.push(this.p0); pts.push(this.p1); pts.push(this.p2);
+            this.makeBezierSourceTrack(pts);
+            this.makeBezierTrack(pts, point3_bezier_3, this.tstep);
+        }
+    }
+
+    update(time, delta)
+    {
+        if(this.t > 1) {
+            console.log('> Point3Bezier:dead-self');
+            this.stop(true);
+            return false;
+        }
+
+        if(this._started) {
+            if(this.calcType === 2) {
+                let a = point3_bezier_2(this.p0, this.p1, this.p2, this.t, this.pt_ing);
+                this.pt_ing.x = a.x;
+                this.pt_ing.y = a.y;
+            }
+            else {
+                point3_bezier_1(this.p0, this.p1, this.p2, this.t, this.pt_ing);
+            }
+            this.realWork(time, delta);
+            this.t += this.tstep;
+            //console.log(this.t);
+        }
+        return true;
+    }
+
+    realWork(time, delta)
+    {
+        console.log.apply(console, ['Point3Bezier:pt_ing:', this.pt_ing.toString(), '(',this.t.toFixed(2), ') p0:', this.p0.toString(), ', p1:', this.p1.toString(), ', p2:', this.p2.toString()]);
+        this.onUpdate(time, delta);
+    }
+}
+Object.assign(Point3Bezier.prototype, BezierLineTrackHelp);
+
+class Point4Bezier1 extends ManualUpdate
+{
+    /** @type {XY} */
+    pt_ing = new XY();
+
+    /** @type {XY} */
+    p0 = new XY();
+
+    /** @type {XY} */
+    p1 = new XY();
+
+    /** @type {XY} */
+    p2 = new XY();
+
+    /** @type {XY} */
+    p3 = new XY();
+
+    /** @type {number} */
+    pointNum = 4;
+
+    /** @type {number} */
+    t = 0;
+
+    /** @type {number} */
+    tstep = 0;
+
+    /** @type {number} */
+    calcType = 1;
+
+    constructor() {
+        super();
+        this.pt_ing.set(0,0);
+        this.p0.set(0,0);
+        this.p1.set(0,0);
+        this.p2.set(0,0);
+        this.p3.set(0,0);
+        this.t = 0;
+        this.tstep = 0.1;
+    }
+
+    get_x() { return this.pt_ing.x; }
+    get_y() { return this.pt_ing.y; }
+
+    setParam(x1, y1, x2, y2, x3, y3, x4, y4, tStep) {
+        this.pt_ing.set(x1, y1);
+        this.p0.set(x1, y1);
+        this.p1.set(x2, y2);
+        this.p2.set(x3, y3);
+        this.p3.set(x4, y4);
+        this.t = 0;
+        this.tstep = tStep ? tStep : 0.1;
+    }
+
+    update(time, delta) {
+        if(this.t > 1) {
+            console.log('> Point3Bezier:dead-self');
+            this.stop(true);
+            return false;
+        }
+
+        if(this._started) {
+            point4_bezier_1(this.p0, this.p1, this.p2, this.p3, this.t, this.pt_ing);
+            this.realWork(time, delta);
+            this.t += this.tstep;
+        }
+        return true;
+    }
+
+    realWork(time, delta) {
+        this.onUpdate(time, delta);
+    }
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -1022,6 +1040,7 @@ function point3_bezier_1(p0, p1, p2, t, out)
     lerp_2(a, b, t, out);
     return out;
 }
+
 
 /**
 * @param {XY} p0
