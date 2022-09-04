@@ -12,11 +12,11 @@
 // https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html (this.input)
 
 import Phaser from 'phaser';
-import { CurveTestScene } from './t_CurveTestScene';
-import { TestAnyScene } from './t_TestAnyScene';
-import { TickTestScene } from './t_TickTestScene';
+import { CurveTestScene } from './CurveTestScene';
+import { TestAnyScene } from './TestAnyScene';
+import { TickTestScene } from './TickTestScene';
 import { BlastScene } from './BlastScene';
-import { ObjectMoveScene } from './t_ObjectMoveScene';
+import { ObjectMoveScene } from './ObjectMoveScene';
 import { GameData, GameOption, GameStat } from './lib_common';
 
 
@@ -29,15 +29,13 @@ import { GameData, GameOption, GameStat } from './lib_common';
  */
 export let game = null;
 
-
+var StartScene;
 
 //=============================================================================================================================================================
 // 메인 함수 - 코드의 시작점
 //=============================================================================================================================================================
 
-//var argvStartSceneName;
-
-function preload_global()
+ function preload_global()
 {
     console.log("= preload_global(): start");
 
@@ -58,7 +56,7 @@ function preload_global()
     game.scene.add('TickTest', TickTestScene);
     game.scene.add('ObjectMove', ObjectMoveScene);
 
-    let start_scene_name = 'BlastScene';    
+    let start_scene_name = 'BlastScene';
     if(StartScene) {
         console.log('FirstScene: ', StartScene);
         start_scene_name = StartScene;
@@ -105,7 +103,7 @@ export function makeBasicPhaserConfig()
 }
 
 /** @returns {Phaser.Game} new_game */
-function makePhaser(config) 
+function makePhaser(config)
 {
     let new_game = new Phaser.Game(config);
     console.log("Phaser.Game() make done. begin default scene");
@@ -141,6 +139,8 @@ function start_curve_scene()
     config.scene.preload = preloadForCurveScene;
     game = makePhaser(config);
 }
+
+
 
 if(StartScene === 'CurveTestScene') {
     start_curve_scene();
