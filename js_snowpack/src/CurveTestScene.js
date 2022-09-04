@@ -417,20 +417,37 @@ export class CurveTestScene extends Phaser.Scene
         this._updateArr.add(pt3bz);
     }
     run_pt3_bezier_2() {
-        let pt3bz = new Point3Bezier();
-        pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
-        pt3bz.calcType = 2;
-        pt3bz.setWorkCallback((time, delta) => {
-            this.clickBox1.x = pt3bz.get_x();
-            this.clickBox1.y = pt3bz.get_y();
-        });
-        this._updateArr.add(pt3bz);
+        let type = 1;
+        if(type === 0)
+        {
+            let pt3bz = new Point3Bezier();
+            pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
+            pt3bz.calcType = 2;
+            pt3bz.setWorkCallback((time, delta) => {
+                this.clickBox1.x = pt3bz.get_x();
+                this.clickBox1.y = pt3bz.get_y();
+            });
+            this._updateArr.add(pt3bz);
+        }
+        else if(type === 1)
+        {
+            let pt3bz = new NPointsBezier(3, point3_bezier_3);
+            pt3bz.setGraphicPool(this._graphicPool);
+            pt3bz.setStep(0.05);
+            pt3bz.setPoints(60, 535, 330, 215, 616, 535);
+            pt3bz.setWorkCallback((time, delta) => {
+                this.clickBox1.x = pt3bz.get_x();
+                this.clickBox1.y = pt3bz.get_y();
+            });
+            this._updateArr.add(pt3bz);
+        }
     }
     run_pt4_bezier_1() {
         let type = 1;
         if(type === 0)
         {
             let pt4bz = new Point4Bezier1();
+            pt4bz.setGraphicPool(this._graphicPool);
             pt4bz.setParam(69, 676, 165, 460, 482, 455, 570, 676, 0.05);
             pt4bz.setWorkCallback((time, delta) => {
                 this.clickBox1.x = pt4bz.get_x();
@@ -441,8 +458,10 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt4bz = new NPointsBezier(4, point4_bezier_2);
+            pt4bz.setGraphicPool(this._graphicPool);
             pt4bz.setStep(0.05);
-            pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676);
+            //pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676);
+            pt4bz.setPoints(152, 777, 137, 485, 425, 247, 715, 273);
             pt4bz.setWorkCallback((time, delta) => {
                 this.clickBox1.x = pt4bz.get_x();
                 this.clickBox1.y = pt4bz.get_y();
@@ -812,6 +831,56 @@ class Point4Bezier1 extends ManualUpdate
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+let BezierLineTrackHelp =
+{
+    /** @type {PhaserGraphicObjectPool} */
+    _graphicPool: null,
+
+    /** @type {number} */
+    _objectLifeDur: 1,
+
+    /** @param {PhaserGraphicObjectPool} grpPool */
+    setGraphicPool(grpPool) {
+        this._graphicPool = grpPool;
+    },
+
+    /** @param {XY[]} pts */
+    makeBezierSourceTrack(pts) {
+        let lineData = [];
+        for(let i = 0; i < pts.length-1; i++) {
+            let param = { life:this._objectLifeDur, fillStyle:{color:0xffffff, size:1, alpha:1.0}, from:{x:0, y:0}, to:{x:100, y:200 } };
+            param.from.x = pts[i].x;
+            param.from.y = pts[i].y;
+            param.to.x = pts[i+1].x;
+            param.to.y = pts[i+1].y;
+            this._graphicPool.addLine(param);
+        }
+    },
+
+    /**
+     * @param {XY[]} pts
+     * @param {(XY, number, XY[])=>void} bezierCallback
+     */
+    makeBezierTrack(pts, bezierCallback, tstep, lineStyle) {
+        let out1 = new XY();
+        let out2 = new XY();
+        for(let i = 0; i <= 1; i += tstep) {
+            bezierCallback(out1, i, pts);
+            bezierCallback(out2, i+tstep, pts);
+            let line_dat = lineStyle ? lineStyle : { life:this._objectLifeDur, fillStyle:{color:0x51b300, size:1, alpha:1.0}, from:{x:0, y:0}, to:{x:100, y:200 } };;
+            line_dat.from.x = out1.x;
+            line_dat.from.y = out1.y;
+            line_dat.to.x = out2.x;
+            line_dat.to.y = out2.y;
+            this._graphicPool.addLine(line_dat);
+        }
+    },
+
+    helperExist() { return true; }
+}
+
 class NPointsBezier extends ManualUpdate
 {
     /** @type {XY} */
@@ -834,7 +903,7 @@ class NPointsBezier extends ManualUpdate
 
     /** xys 배열 변수를 받아서 베지어 계산을 하는 함수를 호출한다.
      * xys의 배열개수와 함수의 내용이 맞아아 문제가 없다.
-     * @type {Function} */
+     * @type {(XY, number, XY[])=>void} */
      bezierPositionCalc = null;
 
     /** @param {number} pointNum */
@@ -880,6 +949,11 @@ class NPointsBezier extends ManualUpdate
             this.points[ar_idx].set(x, y);
             ar_idx++;
         }
+
+        if(this.helperExist) {
+            this.makeBezierSourceTrack(this.points);
+            this.makeBezierTrack(this.points, this.bezierPositionCalc, this.tstep);
+        }
     }
 
     update(time, delta) {
@@ -901,6 +975,8 @@ class NPointsBezier extends ManualUpdate
         this.onUpdate(time, delta);
     }
 }
+
+Object.assign(NPointsBezier.prototype, BezierLineTrackHelp);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -959,6 +1035,15 @@ function point3_bezier_2(p0, p1, p2, t, out)
     out.y = point3_bezier_calc_1(p0.y, p1.y, p2.y, t);
     return out;
 }
+
+function point3_bezier_3(out, t, pts)
+{
+    out = out ? out : new XY(0, 0);
+    out.x = point3_bezier_calc_1(pts[0].x, pts[1].x, pts[2].x, t);
+    out.y = point3_bezier_calc_1(pts[0].y, pts[1].y, pts[2].y, t);
+    return out;
+}
+
 
 /*
 -------------------------------------------------------------------------------
