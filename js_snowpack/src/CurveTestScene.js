@@ -8,14 +8,11 @@ import { vec2_2_str, XY } from './lib_gametype';
 
 //#region [참고용 웹 링크]
 /*
-
 // [class doc]
 // - graphics : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.Graphics.html
 // [example]
 // - geom : http://phaser.io/examples/v3/category/geom
-
 // https://phaser.io/examples/v3/view/game-objects/graphics/obj-scene
-
 // [입력]
 // - InputManager : https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html
 // - setInteractive : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.GameObject.html#setInteractive__anchor
@@ -24,7 +21,6 @@ import { vec2_2_str, XY } from './lib_gametype';
 // - https://phaser.io/examples/v3/category/input
 // - game-objects/dom-element/InputTest
 // - https://phaser.io/examples/v3/search?search=input
-
 // [ex1]
 graphics.lineStyle(5,0xFF00FF,1.0);
 graphics.beginPath();
@@ -32,23 +28,21 @@ graphics.moveTo(100,100);
 graphics.lineTo(200,200);
 graphics.closePath();
 graphics.strokePath();
-
 // [ex2]
 graphics.lineStyle(5,0xFF00FF, 1.0);
 graphics.fillStyle(0xFFFFFF, 1.0);
 graphics.fillRect(50, 50, 400, 200);
 graphics.strokeRect(50, 50, 400, 200);
-
 // [입력처리]
 var sprite = this.add.sprite(x, y, texture);
 sprite.setInteractive();
 sprite.on('pointerdown', callback, context);
-
 */
 //#endregion
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/** ManualUpdate 배열 저장, 이터레이션 처리 */
 export class ManualUpdateArray
 {
     /** @type {ManualUpdate[]} */
@@ -94,8 +88,9 @@ export class ManualUpdate
     _updateCaller = null;
     /** @type {boolean} */
     _started = false;
-    /** @type {(time, delta) => void} */
-    _onUpdate = null;
+    /**  update()에서 호출하는 주기마다 뭔가 하는 함수(콜백)
+     * @type {(time, delta) => void} */
+    _workOnUpdate = null;
 
     constructor() {
         this._started = false;
@@ -118,18 +113,18 @@ export class ManualUpdate
     setCaller(updateCaller) {
         this._updateCaller = updateCaller;
     }
+    setWorkCallback(updateCallback) {
+        this._workOnUpdate = updateCallback;
+    }
+    onUpdate(time, delta) {
+        this._workOnUpdate && this._workOnUpdate(time, delta);
+    }
     /** @virtual
     * @param {number} time current time
     * @param {number} delta delta time
     */
-    update(time, delta) {
+     update(time, delta) {
         this.onUpdate(time, delta)
-    }
-    setCallback(updateCallback) {
-        this._onUpdate = updateCallback;
-    }
-    onUpdate(time, delta) {
-        this._onUpdate && this._onUpdate(time, delta);
     }
 }
 
@@ -406,7 +401,7 @@ export class CurveTestScene extends Phaser.Scene
     run_lerpTest_2() {
         let lerp_2 = new Lerp2D();
         lerp_2.setParam(100, 20, 400, 400, 0.05);
-        lerp_2.setCallback((time, delta) => {
+        lerp_2.setWorkCallback((time, delta) => {
             this.clickBox1.x = lerp_2.get_x();
             this.clickBox1.y = lerp_2.get_y();
         });
@@ -415,7 +410,7 @@ export class CurveTestScene extends Phaser.Scene
     run_pt3_bezier_1() {
         let pt3bz = new Point3Bezier();
         pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
-        pt3bz.setCallback((time, delta) => {
+        pt3bz.setWorkCallback((time, delta) => {
             this.clickBox1.x = pt3bz.get_x();
             this.clickBox1.y = pt3bz.get_y();
         });
@@ -425,20 +420,35 @@ export class CurveTestScene extends Phaser.Scene
         let pt3bz = new Point3Bezier();
         pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
         pt3bz.calcType = 2;
-        pt3bz.setCallback((time, delta) => {
+        pt3bz.setWorkCallback((time, delta) => {
             this.clickBox1.x = pt3bz.get_x();
             this.clickBox1.y = pt3bz.get_y();
         });
         this._updateArr.add(pt3bz);
     }
     run_pt4_bezier_1() {
-        let pt4bz = new Point4Bezier1();
-        pt4bz.setParam(69, 676, 165, 460, 482, 455, 570, 676, 0.05);
-        pt4bz.setCallback((time, delta) => {
-            this.clickBox1.x = pt4bz.get_x();
-            this.clickBox1.y = pt4bz.get_y();
-        });
-        this._updateArr.add(pt4bz);
+        let type = 1;
+        if(type === 0)
+        {
+            let pt4bz = new Point4Bezier1();
+            pt4bz.setParam(69, 676, 165, 460, 482, 455, 570, 676, 0.05);
+            pt4bz.setWorkCallback((time, delta) => {
+                this.clickBox1.x = pt4bz.get_x();
+                this.clickBox1.y = pt4bz.get_y();
+            });
+            this._updateArr.add(pt4bz);
+        }
+        else if(type === 1)
+        {
+            let pt4bz = new NPointsBezier(4, point4_bezier_2);
+            pt4bz.setStep(0.05);
+            pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676);
+            pt4bz.setWorkCallback((time, delta) => {
+                this.clickBox1.x = pt4bz.get_x();
+                this.clickBox1.y = pt4bz.get_y();
+            });
+            this._updateArr.add(pt4bz);
+        }
     }
 }
 
@@ -718,6 +728,17 @@ class Point3Bezier extends ManualUpdate
     }
 }
 
+/**
+ * @example
+ * let pt4bz = new NPointsBezier( (좌표 개수) 4,  (베지어 콜백 함수) point4_bezier_2);
+ * pt4bz.setStep(0.05); // t의 증가값
+ * pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676); // x1, y1, x2, y2, ...
+ * pt4bz.setWorkCallback((time, delta) => {
+ *   this.clickBox1.x = pt4bz.get_x();
+ *   this.clickBox1.y = pt4bz.get_y();
+ * });
+ * this._updateArr.add(pt4bz);
+ */
 class Point4Bezier1 extends ManualUpdate
 {
     /** @type {XY} */
@@ -736,6 +757,9 @@ class Point4Bezier1 extends ManualUpdate
     p3 = new XY();
 
     /** @type {number} */
+    pointNum = 4;
+
+    /** @type {number} */
     t = 0;
 
     /** @type {number} */
@@ -744,8 +768,7 @@ class Point4Bezier1 extends ManualUpdate
     /** @type {number} */
     calcType = 1;
 
-    constructor()
-    {
+    constructor() {
         super();
         this.pt_ing.set(0,0);
         this.p0.set(0,0);
@@ -759,9 +782,7 @@ class Point4Bezier1 extends ManualUpdate
     get_x() { return this.pt_ing.x; }
     get_y() { return this.pt_ing.y; }
 
-
-    setParam(x1, y1, x2, y2, x3, y3, x4, y4, tStep)
-    {
+    setParam(x1, y1, x2, y2, x3, y3, x4, y4, tStep) {
         this.pt_ing.set(x1, y1);
         this.p0.set(x1, y1);
         this.p1.set(x2, y2);
@@ -771,8 +792,7 @@ class Point4Bezier1 extends ManualUpdate
         this.tstep = tStep ? tStep : 0.1;
     }
 
-    update(time, delta)
-    {
+    update(time, delta) {
         if(this.t > 1) {
             console.log('> Point3Bezier:dead-self');
             this.stop(true);
@@ -787,8 +807,97 @@ class Point4Bezier1 extends ManualUpdate
         return true;
     }
 
-    realWork(time, delta)
+    realWork(time, delta) {
+        this.onUpdate(time, delta);
+    }
+}
+
+class NPointsBezier extends ManualUpdate
+{
+    /** @type {XY} */
+    pt_ing = new XY();
+
+    /** @type {XY[]} */
+    points = [];
+
+    /** @type {number} */
+    pointNum = 4;
+
+    /** @type {number} */
+    t = 0;
+
+    /** @type {number} */
+    tstep = 0;
+
+    /** @type {number} */
+    calcType = 1;
+
+    /** xys 배열 변수를 받아서 베지어 계산을 하는 함수를 호출한다.
+     * xys의 배열개수와 함수의 내용이 맞아아 문제가 없다.
+     * @type {Function} */
+     bezierPositionCalc = null;
+
+    /** @param {number} pointNum */
+    constructor(pointNum, bezierCalcCallback)
     {
+        super();
+        this.pointNum = pointNum;
+        this.pt_ing.set(0,0);
+        for(let i = 0; i < this.pointNum; i++) {
+            let nx = new XY();
+            nx.set(0,0);
+            this.points.push(nx);
+        }
+        this.t = 0;
+        this.tstep = 0.1;
+        this.bezierPositionCalc = bezierCalcCallback;
+    }
+
+    get_x() { return this.pt_ing.x; }
+    get_y() { return this.pt_ing.y; }
+
+    /** @param {number} tStep */
+    setStep(tStep) {
+        this.t = 0;
+        this.tstep = tStep ? tStep : 0.1;
+    }
+
+    // 나머지 매개 변수 : https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Functions/rest_parameters
+    /**
+     * @param {number} tStep
+     * @param {XY[]} ...xys. (x1, y1, x2, y2, x3, y3, ...) (x,y 순서의 좌표값)
+     */
+    setPoints(...xys) {
+        this.pt_ing.set(xys[0], xys[1]);
+        console.log('NPointsBezier: setPoints: ParamCnt: ' + xys.length);
+        if((xys.length % 2) !== 0) {
+            console.warn('NPointsBezier: ...xys length : not even');
+        }
+        let ar_idx = 0;
+        for(let i = 0; i < xys.length; i += 2) {
+            let x = xys[i];
+            let y = xys[i+1];
+            this.points[ar_idx].set(x, y);
+            ar_idx++;
+        }
+    }
+
+    update(time, delta) {
+        if(this.t > 1) {
+            console.log('> NPointsBezier:dead-self');
+            this.stop(true);
+            return false;
+        }
+
+        if(this._started) {
+            this.bezierPositionCalc(this.pt_ing, this.t, this.points);
+            this.workOnBezierPosition(time, delta);
+            this.t += this.tstep;
+        }
+        return true;
+    }
+
+    workOnBezierPosition(time, delta) {
         this.onUpdate(time, delta);
     }
 }
@@ -881,7 +990,10 @@ function point3_bezier_calc_1(n0, n1, n2, t)
 -------------------------------------------------------------------------------
 */
 
-/** lerp_2만 써서, 점 4개짜리 곡선 움직임 찾기 */
+/** lerp_2만 써서, 점 4개짜리 곡선 움직임 찾기
+ * @param {XY} p0. XY 형식의 좌표값. p0 ~ p3
+ * @param {XY} out
+ * @param {number} t */
 function point4_bezier_1(p0, p1, p2, p3, t, out)
 {
     out = out ? out : new XY(p0.x, p0.y);
@@ -898,6 +1010,25 @@ function point4_bezier_1(p0, p1, p2, p3, t, out)
     return out;
 }
 
+/**
+ * @param {XY} out
+ * @param {number} t
+ * @param {XY[]} pts. [XY, XY, XY, XY] XY 4개 있는 배열 필요. */
+function point4_bezier_2(out, t, pts)
+{
+    out = out ? out : new XY(pts[0].x, pts[0].y);
+
+    let a = lerp_2(pts[0], pts[1], t);
+    let b = lerp_2(pts[1], pts[2], t);
+    let c = lerp_2(pts[2], pts[3], t);
+
+    let e = lerp_2(a, b, t);
+    let f = lerp_2(b, c, t);
+
+    lerp_2(e, f, t, out);
+
+    return out;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
