@@ -1,8 +1,9 @@
-// @ts-nocheck
+// ts-nocheck
 /* eslint-disable no-unused-vars */
 import Phaser from 'phaser'
 import { TickPlay } from './TickPlay';
 import { vec2_2_str, XY } from './lib_gametype';
+import { UI_TextButton } from './lib_ui';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -12,7 +13,7 @@ import { vec2_2_str, XY } from './lib_gametype';
 // - graphics : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.Graphics.html
 // [example]
 // - geom : http://phaser.io/examples/v3/category/geom
-// https://phaser.io/examples/v3/view/game-objects/graphics/obj-scene
+// - https://phaser.io/examples/v3/view/game-objects/graphics/obj-scene
 // [입력]
 // - InputManager : https://photonstorm.github.io/phaser3-docs/Phaser.Input.InputPlugin.html
 // - setInteractive : https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.GameObject.html#setInteractive__anchor
@@ -21,6 +22,7 @@ import { vec2_2_str, XY } from './lib_gametype';
 // - https://phaser.io/examples/v3/category/input
 // - game-objects/dom-element/InputTest
 // - https://phaser.io/examples/v3/search?search=input
+//
 // [ex1]
 graphics.lineStyle(5,0xFF00FF,1.0);
 graphics.beginPath();
@@ -1138,72 +1140,4 @@ function point4_bezier_2(out, t, pts)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class UI_TextButton
-{
-    /** @type {Phaser.GameObjects.Text} */
-    _text = null;
-    /** @type {Phaser.GameObjects.Text} */
-    _hiddenText = null;
-    /** @type {() => void} */
-    _onClick = null;
-
-    /**
-     * @param {Phaser.Scene} scene
-     * @param {string} text
-     * @param {number} x
-     * @param {number} y
-     * @param {JSON} style
-     * @param {function} onClickResponse
-     */
-    constructor(scene, text, x, y, style, onClickResponse)
-    {
-        this.init(scene, text, x, y, style, onClickResponse);
-    }
-
-    /**
-     * @param {Phaser.Scene} scene
-     * @param {string} text
-     * @param {number} x
-     * @param {number} y
-     * @param {JSON} style
-     * @param {function} onClickResponse
-     */
-    init(scene, text, x, y, style, onClickResponse)
-    {
-        x = x ? x : 0;
-        y = y ? y : 0;
-        style = style ? style : { color: '#00ff00' };
-
-        if(onClickResponse)
-        {
-            this._onClick = onClickResponse;
-        }
-
-        this._text = scene.add.text(x, y, text);
-        this._text.setInteractive();
-
-        this._text.on('pointerdown', () =>
-        {
-            console.log('on click');
-            this._onClick && this._onClick();
-        });
-
-        this._hiddenText = scene.add.text(x, y, text);
-        this._hiddenText.active = false;
-    }
-
-    setPosition(x, y)
-    {
-        this._text.setPosition(x, y);
-        this._hiddenText.setPosition(x, y);
-    }
-
-    /** @param {Function} onClickResponse */
-    setClickCallback(onClickResponse)
-    {
-        this._onClick = onClickResponse;
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
