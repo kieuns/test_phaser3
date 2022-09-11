@@ -1,0 +1,155 @@
+<!DOCTYPE html><html>
+<head>
+<!-- no cache -->
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Expires" CONTENT="-1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="keywords" content="phaser3">
+  <meta name="description" content="">
+
+  <style type="text/css">
+    body { padding: 0px; margin: 0px; background-color: #000000; }
+    p { color:aliceblue; }
+  </style>
+
+  <style type="text/css">
+    .large {
+      width: 48px;
+      height: 48px;
+    }
+    .square,
+    .circle {
+      pointer-events: none;
+      position: relative;
+      width: 28px;
+      height: 28px;
+      margin: 1px;
+      background-color: currentColor;
+      font-size: 14px;
+    }
+    .demo-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      width: 400px;
+      height: 100%;
+      background-color:darkolivegreen;
+    }
+    .content-800-600 {
+      /* position: relative; */
+      /* display: flex; */
+      /* flex-direction: column; */
+      /*justify-content: center;*/
+      /* text-align: center; */
+      width: 800px;
+      height: 600px;
+      background-color:darkslateblue;
+    }
+    .shadow {
+      position: absolute; /* 가장 마지막 것이 적용 되니, 사용시 유의 */
+      opacity: .2;
+    }
+    .vertical-center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      -ms-transform: translateY(-50%);
+      transform: translateY(-50%);
+    }
+    .center-center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+    #obj1 {
+      position: fixed;
+      left: 0px; top: 0px;
+      background-color:chocolate;
+    }
+  </style>
+
+
+  <title>Snowpack (RND)</title>
+
+</head>
+<body>
+  <div class="content">
+    <a href="PhaserSample1">Sample1</a>
+    <img id="img1" class="el" src="/assets/circle_16.png">
+  </div>
+
+  <div>
+    <a href="/dist/curve_test.html">dist/curve_test.html</a>
+  </div>
+
+  <div id='t1' class="demo-content css-prop-demo">
+    <div class="large square shadow"></div>
+    <div class="large square el"></div>
+  </div>
+
+  <div class="content-800-600 center-center">
+    <div id="obj1" class="large el"></div>
+  </div>
+
+</body>
+</html>
+
+
+<script type="module">
+  import anime from 'animejs/lib/anime.es.js';
+  function ani_test_1() {
+    console.log('ani_test_1: clciked');
+    resetDemo();
+    anime({
+      targets: '#img1',
+      translateX: 400
+    });
+  }
+
+  function ani_test_2() {
+    console.log('ani_test_2: clciked');
+    resetDemo();
+    anime({
+      targets: '.el',
+      left: '240px',
+      backgroundColor: '#FFF',
+      borderRadius: ['0%', '50%'],
+      easing: 'easeInOutQuad'
+    });
+  }
+
+  function setClickEventById(elemId, evtFunc) {
+    const elem = document.getElementById(elemId);
+    if(elem) {
+      elem.onclick = evtFunc;
+    } else {
+      console.warn('document.getElementById() fail:' + elemId);
+    }
+  }
+
+  function resetDemo() {
+    var els = document.querySelectorAll('.el');
+    for (var i = 0; i < els.length; i++) {
+      anime.remove(els[i]);
+      els[i].style = '';
+    }
+  }
+
+  setClickEventById('img1', ani_test_1);
+  setClickEventById('t1', ani_test_2);
+  setClickEventById('obj1', () => {
+    resetDemo();
+    anime({
+      targets: '#obj1',
+      translateX: 400,
+      translateY: 100
+    });
+  });
+</script>
