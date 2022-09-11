@@ -1,4 +1,42 @@
 
+# RenderTexture
+
+* `Phaser.GameObjects. RenderTexture`
+
+```
+var scrn_x = 0;
+var scrn_y = 0;
+var x_size = 100;
+var y_size = 100;
+var rt = this.scene.add.renderTexture(scrn_x, scrn_y, x_size, y_size);
+```
+
+---
+
+# Scene
+
+## 현재 Scene
+
+* `Phaser.GameObjects.GameObject` 모든 게임 오브젝트의 부모
+* `scene :Phaser.Scene` 를 갖고 있다.
+
+---
+
+# 랜덤
+
+```
+var x = Phaser.Math.Between(0, 800);
+var y = Phaser.Math.Between(0, 600);
+```
+
+---
+
+# 기타
+
+* `Phaser.Math.Distance.Between()`
+
+---
+
 # example web
 
 * web-root : https://phaser.io/examples/v3/category/scenes
