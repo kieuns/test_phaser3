@@ -1,4 +1,4 @@
-// ts-nocheck
+// zts-nocheck
 /* eslint-disable no-unused-vars */
 import Phaser from 'phaser'
 import { TickPlay } from './TickPlay';
@@ -152,7 +152,8 @@ export class PhaserGraphicObjectPool
      * @example
      * const lineDataArrExam = [
      * { life:0.5, fillStyle:{color:0xffffff, size:1, alpha:1.0 }, from:{x:0, y:0}, to:{x:100, y:200 } },
-     * { fillStyle:{color:0xff0000, size:1, alpha:1.0 }, from:{x:200, y:50}, to:{x:200, y:400} }];
+     * { fillStyle:{color:0xff0000, size:1, alpha:1.0 }, from:{x:200, y:50}, to:{x:200, y:400} }
+     * ];
      */
     addLine(jsonData) {
         this._lineDataArr.push(jsonData);
@@ -256,33 +257,67 @@ export class PhaserImageObjectPool
     /** @type {Phaser.Scene} */
     _scene = null;
 
-    /** @type {Phaser.GameObjects.Image[]} */
-    _imgArr         = undefined;
+    /** @type {JsonObject[]}
+     * @example
+     * { life:2, texture: 'click_box', style:{color:0xff00ff, scale:1, alpha:1.0}, to:{x:100, y:200 }, gameobject:null }
+     */
+    _imgJsonArr = undefined;
     /** @type {number} */
-    _imgIndex       = 0;
+    _imgOutCount = 0;
 
     /** @type {TickPlay} */
     _tickPlayer = null;
+
+    /** @param {Phaser.Scene} scene */
+    constructor(scene) {
+        this._scene = scene;
+        this.init();
+    }
+
+    /** @param {Phaser.Scene} scene */
+    init(scene) {
+        this._scene = scene ? scene : this._scene;
+        this._imgJsonArr = [];
+        this._imgOutCount = 0;
+    }
 
     setTickPlayer(tp) {
         this._tickPlayer = tp;
     }
 
      /** @param {JsonObject} jsonData
-     * @example
-     * const dotDataArr = [
-     * { life:2, style:{color:0xff00ff, scale:1, alpha:1.0}, to:{x:100, y:200 } }, ];
-     */
-      addDot(jsonData) {
-        // this._dotDataArr.push(jsonData);
-        // if(jsonData.life && this._tickPlayer) {
-        //     this._tickPlayer.reserveOnTime(jsonData.life, () => {
-        //         let idx = this._dotDataArr.findIndex(elem => elem === jsonData);
-        //         if(idx >= 0) {
-        //             this._dotDataArr.splice(idx, 1);
-        //         }
-        //     });
-        // }
+      * @returns {Phaser.GameObjects.Image}
+      * @example
+      * { life:2, texture: 'click_box', style:{color:0xff00ff, scale:1, alpha:1.0}, to:{x:100, y:200 }, gameobject:null }
+      */
+    addDot(jsonData) {
+        let dot_img = this._scene.add.image(jsonData.to.x, jsonData.to.y, jsonData.texture);
+        if(jsonData.style.scale) {
+            dot_img.setScale(jsonData.style.scale);
+        }
+        jsonData.gameobject = dot_img;
+        this._imgJsonArr.push(jsonData);
+        if(jsonData.life && (jsonData.life > 0) && this._tickPlayer) {
+            this._tickPlayer.reserveOnTime(jsonData.life, () => {
+                let idx = this._imgJsonArr.findIndex(elem => elem === jsonData);
+                if(idx >= 0) {
+                    this._imgJsonArr[idx].gameobject.destroy();
+                    this._imgJsonArr.splice(idx, 1);
+                }
+            });
+        }
+        return dot_img;
+    }
+
+    /** @return {JsonObject} */
+    getDot()
+    {
+        if(this._imgOutCount >= this._imgJsonArr.length) {
+            this.addDot({ life:1, texture: 'click_box', style:{color:0xff00ff, scale:1, alpha:1.0}, to:{x:200, y:200 }, gameobject:null });
+        }
+        let obj = this._imgJsonArr[this._imgOutCount];
+        this._imgOutCount++;
+        return obj;
     }
 }
 
@@ -370,15 +405,32 @@ async function startLerp2D_ClickLocationGuide(scene)
 
 let BezierLineTrackHelp =
 {
+    /** @type {number} */
+    _objectLifeDur: 4,
+
     /** @type {PhaserGraphicObjectPool} */
     _graphicPool: null,
 
-    /** @type {number} */
-    _objectLifeDur: 4,
+    /** @type {PhaserImageObjectPool} */
+    _imagePool: null,
 
     /** @param {PhaserGraphicObjectPool} grpPool */
     setGraphicPool(grpPool) {
         this._graphicPool = grpPool;
+    },
+
+    /** @param {PhaserImageObjectPool} imgPool */
+    setImagePool(imgPool) {
+        this._imagePool = imgPool;
+    },
+
+    /** 
+     * @param {PhaserGraphicObjectPool} grpPool
+     * @param {PhaserImageObjectPool} imgPool 
+     */
+    setPool(grpPool, imgPool) {
+        this.setGraphicPool(grpPool);
+        this.setImagePool(imgPool);
     },
 
     /** @param {XY[]} pts */
@@ -416,7 +468,20 @@ let BezierLineTrackHelp =
     /**
      * @param {XY[]} pts
      */
-    makeClickPoints(pts) {
+     makeClickPoints(pts) {
+        let lineData = [];
+        for(let i = 0; i < pts.length-1; i++) {
+            let param = { life:this._objectLifeDur, texture:'click_box', style:{color:0xff00ff, scale:1, alpha:1.0}, to:{x:400, y:400 }, gameobject:null };
+            param.to.x = pts[i].x;
+            param.to.y = pts[i].y;
+            this._imagePool.addDot(param);
+        }
+    },
+
+    /**
+     * @param {XY[]} pts
+     */
+    makeClickPoints_ByGrphic(pts) {
         let lineData = [];
         for(let i = 0; i < pts.length-1; i++) {
             let param = { life:this._objectLifeDur, fillStyle:{color:0xff00ff, size:10, alpha:1.0 }, to:{x:100, y:200 } };
@@ -979,6 +1044,9 @@ export class CurveTestScene extends Phaser.Scene
     /** @type {PhaserGraphicObjectPool} */
     _graphicPool = null;
 
+    /** @type {} */
+    _imagePool = null;
+
     constructor()
     {
         super('CurveTestScene');
@@ -1001,6 +1069,9 @@ export class CurveTestScene extends Phaser.Scene
 
         this._graphicPool = new PhaserGraphicObjectPool(this);
         this._graphicPool.setTickPlayer(this._tickPlay);
+
+        this._imagePool = new PhaserImageObjectPool(this);
+        this._imagePool.setTickPlayer(this._tickPlay);
 
         const lineDataArr = [
             { life:0.5, fillStyle:{color:0xffffff, size:1, alpha:1.0 }, from:{x:0, y:0}, to:{x:100, y:200 } },
@@ -1028,6 +1099,8 @@ export class CurveTestScene extends Phaser.Scene
 
         this._graphicPool.addDots(dotDataArr);
         this._graphicPool.addLines(lineDataArr);
+
+        this._imagePool.addDot({ life:1, texture: 'click_box', style:{color:0xff00ff, scale:5, alpha:1.0}, to:{x:400, y:400 }, gameobject:null });
     }
 
     makeTextButton()
@@ -1097,7 +1170,7 @@ export class CurveTestScene extends Phaser.Scene
     }
     run_lerpTest_2() {
         let lerp_2 = new Lerp2D();
-        if(lerp_2.helperExist) { lerp_2.setGraphicPool(this._graphicPool); }
+        if(lerp_2.helperExist) { lerp_2.setPool(this._graphicPool, this._imagePool); }
         lerp_2.setParam(100, 20, 400, 400, 0.05);
         lerp_2.setWorkCallback((time, delta) => {
             this.clickBox1.x = lerp_2.get_x();
@@ -1107,7 +1180,7 @@ export class CurveTestScene extends Phaser.Scene
     }
     run_pt3_bezier_1() {
         let pt3bz = new Point3Bezier();
-        if(pt3bz.helperExist) { pt3bz.setGraphicPool(this._graphicPool); }
+        if(pt3bz.helperExist) { pt3bz.setPool(this._graphicPool, this._imagePool); }
         pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
         pt3bz.setWorkCallback((time, delta) => {
             this.clickBox1.x = pt3bz.get_x();
@@ -1131,7 +1204,7 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt3bz = new NPointsBezier(3, point3_bezier_3);
-            if(pt3bz.helperExist) { pt3bz.setGraphicPool(this._graphicPool); }
+            if(pt3bz.helperExist) { pt3bz.setPool(this._graphicPool, this._imagePool); }
             pt3bz.setStep(0.05);
             pt3bz.setPoints(60, 535, 330, 215, 616, 535);
             pt3bz.setWorkCallback((time, delta) => {
@@ -1156,7 +1229,7 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt4bz = new NPointsBezier(4, point4_bezier_2);
-            if(pt4bz.helperExist) { pt4bz.setGraphicPool(this._graphicPool); }
+            if(pt4bz.helperExist) { pt4bz.setPool(this._graphicPool, this._imagePool); }
             pt4bz.setStep(0.05);
             //pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676);
             pt4bz.setPoints(152, 777, 137, 485, 425, 247, 715, 273);
