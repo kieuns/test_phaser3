@@ -61,6 +61,10 @@ this.load.image('click_box', '/assets/16x16.png');
 * phaser : https://www.npmjs.com/package/phaser
 * animejs : https://www.npmjs.com/package/animejs
 
+---
+# eslint
+
+* Configuring ESLint: https://eslint.org/docs/latest/user-guide/configuring/
 
 ---
 # threejs

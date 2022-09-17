@@ -13,7 +13,7 @@ export class UI_TextButton
     _hiddenText = null;
     /** @type {() => void} */
     _onClick = null;
-    /** @type {Phaser.Scene.tween} */
+    /** @type {Phaser.Tweens.Tween} */
     _clickTween = null;
     /** @type {Phaser.GameObjects.Container} */
     _container = null;
@@ -24,7 +24,7 @@ export class UI_TextButton
      * @param {number} x
      * @param {number} y
      * @param {JSON} style
-     * @param {function} onClickResponse
+     * @param {() => void} onClickResponse
      */
     constructor(scene, text, x, y, style, onClickResponse) {
         this.create(scene, text, x, y, style, onClickResponse);
@@ -36,7 +36,7 @@ export class UI_TextButton
      * @param {number} x
      * @param {number} y
      * @param {JSON} style
-     * @param {function} onClickResponse
+     * @param {() => void} onClickResponse
      */
     create(scene, text, x, y, style, onClickResponse)
     {
@@ -81,7 +81,7 @@ export class UI_TextButton
         this._container.setPosition(x, y);
     }
 
-    /** @param {Function} onClickResponse */
+    /** @param {() => void} onClickResponse */
     setClickCallback(onClickResponse) {
         this._onClick = onClickResponse;
     }
@@ -97,7 +97,7 @@ export class UI_TextButton
         };
         this._clickTween = this._scene.tweens.add({
             targets:this._hiddenText,
-            scaleX:1.5, duration: 200, alpha:0, ease:'Sine.easeOut',
+            scaleX:1.5, duration: 400, alpha:0, ease:'Cubic.easeOut',
             onStart: on_start,
             onComplete: on_complete
         });
@@ -146,7 +146,6 @@ export class UI_Button extends Phaser.GameObjects.GameObject
 
     /**
      * @param {Phaser.Scene} scene
-     * @param {string} text
      * @param {number} x
      * @param {number} y
      * @param {number} cx
@@ -161,11 +160,8 @@ export class UI_Button extends Phaser.GameObjects.GameObject
 
     /**
      * @param {Phaser.Scene} scene
-     * @param {string} text
      * @param {number} x
      * @param {number} y
-     * @param {JSON} style
-     * @param {function} onClickResponse
      */
     create(scene, x, y, cx, cy)
     {
