@@ -1216,7 +1216,7 @@ export class CurveTestScene extends Phaser.Scene
             });
             pt4bz.setOnUpdateWithTCallback((time, delta, t) => {
                 let vec = point4_bezier_velocity(t, pt4bz.getPoints());
-                console.log.apply(console, ['setUpdateWithT(', t.toFixed(2), '):', vec.toFixed(2)]);
+                //console.log.apply(console, ['setUpdateWithT(', t.toFixed(2), '):', vec.toFixed(2)]);
             });
             this._updateArr.add(pt4bz);
         }

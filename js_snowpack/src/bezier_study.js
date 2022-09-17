@@ -146,17 +146,23 @@ export function point4_bezier_2(out, t, pts)
  */
 export function point4_bezier_velocity(t, pts)
 {
-    //out = out ? out : new XY(pts[0].x, pts[0].y);
+    let out = new XY(pts[0].x, pts[0].y);
+
     if(pts.length !== 4) {
         console.warn('point4_bezier_velocity: need 4 points');
         return
     }
-    let p0 = (-3 * t ** 2) + (6 * t) + (-3);
+    let p0 = ((-3 * t ** 2) + (6 * t) + (-3));
     let p1 = (9 * t ** 2) + (-12 * t) + (3);
     let p2 = (-9 * t ** 2) + (6 * t);
     let p3 = (3 * t ** 2);
 
-    console.log.apply(console, ['point4_bezier_velocity: P0('+p0.toFixed(2)+') + P1('+p1.toFixed(2)+') + P2('+p2.toFixed(2)+') + P3('+p3.toFixed(2)+')']);
+    out.x = (p0 * pts[0].x) + (p1 * pts[1].x) + (p2 * pts[2].x) + (p3 * pts[3].x);
+    out.y = (p0 * pts[0].y) + (p1 * pts[1].y) + (p2 * pts[2].y) + (p3 * pts[3].y);
 
-    return p0 + p1 + p2 + p3;
+    console.log('point4_bezier_velocity\n: ' + out.toString());
+
+    let final = p0 + p1 + p2 + p3;
+    console.log.apply(console, ['point4_bezier_velocity\n: all('+final.toFixed(2)+') P0('+p0.toFixed(2)+') + P1('+p1.toFixed(2)+') + P2('+p2.toFixed(2)+') + P3('+p3.toFixed(2)+')']);
+    return final;
 }
