@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "no-unused-vars":"warn",
+    "no-unreachable": "error",
+    "no-use-before-define":"error"
+  }
+}
