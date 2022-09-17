@@ -27,7 +27,7 @@ export class ManualUpdateArray
     /** @param {ManualUpdate} obj */
     add(obj) {
         obj.setUpdateCaller(this);
-        obj.start();
+        obj.startManualUpdate();
         this._objectArray.push(obj);
         this.dbglog();
     }
@@ -48,7 +48,7 @@ export class ManualUpdateArray
     * @param {number} delta delta time
     */
     manualUpdate(time, delta) {
-        this._objectArray.forEach((v, i, arr) => v.update(time, delta));
+        this._objectArray.forEach((v, i, arr) => v.onUpdate(time, delta));
     }
 }
 
@@ -60,7 +60,7 @@ export class ManualUpdate
     _started = false;
     /**  update()에서 호출하는 주기마다 뭔가 하는 함수(콜백)
      * @type {(time, delta) => void} */
-    _externalUpdate = null;
+    _externalUpdateFunc = null;
 
     constructor() {
         this._started = false;
@@ -68,13 +68,13 @@ export class ManualUpdate
     /** virtual
     * @param {ManualUpdateArray} updater
     */
-    start() {
+    startManualUpdate() {
         this._started = true;
     }
     /** virtual
     * @param {boolean} delSelf
     */
-    stop(delSelf) {
+    stopManualUPdate(delSelf) {
         this._started = false;
         if(delSelf) {
             this._updateCaller.del(this);
@@ -85,17 +85,18 @@ export class ManualUpdate
         this._updateCaller = updateCaller;
     }
     /** @param {(time, delta) => void} updateCallback */
-    setWorkCallback(updateCallback) {
-        this._externalUpdate = updateCallback;
+    setUpdateCallback(updateCallback) {
+        this._externalUpdateFunc = updateCallback;
     }
+    /** @virtual */
     updateExternalCallback(time, delta) {
-        this._externalUpdate && this._externalUpdate(time, delta);
+        this._externalUpdateFunc && this._externalUpdateFunc(time, delta);
     }
     /** @virtual
     * @param {number} time current time
     * @param {number} delta delta time
     */
-     update(time, delta) {
+     onUpdate(time, delta) {
         this.updateExternalCallback(time, delta)
     }
 }
@@ -288,7 +289,11 @@ export class PhaserImageObjectPool
      /** @param {JsonObject} jsonData
       * @returns {Phaser.GameObjects.Image}
       * @example
-      * { life:2, texture: 'click_box', style:{color:0xff00ff, scale:1, alpha:1.0}, to:{x:100, y:200 }, gameobject:null }
+      * { life:2, texture: 'click_box',
+      *   draggable:true,
+      *   xy:(XY 인스턴스),
+      *   style:{color:0xff00ff, scale:1, alpha:1.0}, to:{x:100, y:200 },
+      *   gameobject:null }
       */
     addDot(jsonData) {
         let dot_img = this._scene.add.image(jsonData.to.x, jsonData.to.y, jsonData.texture);
@@ -296,8 +301,20 @@ export class PhaserImageObjectPool
             dot_img.setScale(jsonData.style.scale);
         }
         jsonData.gameobject = dot_img;
+        if(jsonData.draggable && jsonData.draggable === true) {
+            dot_img.setInteractive();
+            this._scene.input.setDraggable(dot_img);
+            dot_img.on('drag', function () {
+                //console.log.apply(console, [this]);
+                jsonData.xy.x = this.x;
+                jsonData.xy.y = this.y;
+                console.log.apply(console, ['xy: ', jsonData.xy]);
+            });
+
+        }
         this._imgJsonArr.push(jsonData);
-        if(jsonData.life && (jsonData.life > 0) && this._tickPlayer) {
+        if(jsonData.life && (jsonData.life > 0) && this._tickPlayer)
+        {
             this._tickPlayer.reserveOnTime(jsonData.life, () => {
                 let idx = this._imgJsonArr.findIndex(elem => elem === jsonData);
                 if(idx >= 0) {
@@ -403,6 +420,7 @@ async function startLerp2D_ClickLocationGuide(scene)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/** @type {mixin} BezierLineTrackHelp */
 let BezierLineTrackHelp =
 {
     /** @type {number} */
@@ -424,9 +442,9 @@ let BezierLineTrackHelp =
         this._imagePool = imgPool;
     },
 
-    /** 
+    /**
      * @param {PhaserGraphicObjectPool} grpPool
-     * @param {PhaserImageObjectPool} imgPool 
+     * @param {PhaserImageObjectPool} imgPool
      */
     setPool(grpPool, imgPool) {
         this.setGraphicPool(grpPool);
@@ -474,7 +492,10 @@ let BezierLineTrackHelp =
             let param = { life:this._objectLifeDur, texture:'click_box', style:{color:0xff00ff, scale:1, alpha:1.0}, to:{x:400, y:400 }, gameobject:null };
             param.to.x = pts[i].x;
             param.to.y = pts[i].y;
-            this._imagePool.addDot(param);
+            param.xy = pts[i];
+            param.draggable = true;
+            //console.log.apply(console, [param]);
+            let added_point = this._imagePool.addDot(param);
         }
     },
 
@@ -491,7 +512,7 @@ let BezierLineTrackHelp =
         }
     },
 
-    helperExist() { return true; }
+    helperBezierLine() { return true; }
 }
 
 /** N차 베지어 곡선을 처리할 클래스. 베지어 함수와 커브를 그릴 좌표는 지정해줘야한다.
@@ -574,17 +595,17 @@ class NPointsBezier extends ManualUpdate
             ar_idx++;
         }
 
-        if(this.helperExist) {
+        if(this.helperBezierLine) {
             this.makeBezierSourceTrack(this.points);
             this.makeBezierTrack(this.points, this.bezierPositionCalc, this.tstep);
             this.makeClickPoints(this.points);
         }
     }
 
-    update(time, delta) {
+    onUpdate(time, delta) {
         if(this.t > 1) {
             console.log('> NPointsBezier:dead-self');
-            this.stop(true);
+            this.stopManualUPdate(true);
             return false;
         }
 
@@ -625,11 +646,11 @@ class Lerp1D extends ManualUpdate
         this.t = 0;
     }
 
-    update(time, delta)
+    onUpdate(time, delta)
     {
         if(this.t > 1) {
             console.log('> dead-self');
-            this.stop(true);
+            this.stopManualUPdate(true);
             return false;
         }
 
@@ -691,21 +712,21 @@ class Lerp2D extends ManualUpdate
         this.t = 0;
         this.tstep = tStep ? tStep : 0.1;
 
-        if(this.helperExist) {
+        if(this.helperBezierLine) {
             let pts = [];
             pts.push(this.p0); pts.push(this.p1);
             this.makeBezierSourceTrack(pts);
         }
     }
 
-    update(time, delta)
+    onUpdate(time, delta)
     {
         //if(Math.floor(this.t) > 1) { // 테스트해볼 코드 > 한단계 남겨두고 멈춰서 못쓸것
         // this.t 가 부동소수점으로 (1.0000000000000002 가 되어서 1보다 큰 경우가 있음)
         //if(this.t >= (1 + this.tstep)) {
         if(this.t > 1.01) {
             console.log('> Lerp2D:dead-self');
-            this.stop(true);
+            this.stopManualUPdate(true);
             return false;
         }
 
@@ -772,7 +793,7 @@ class Point3Bezier extends ManualUpdate
         this.t = 0;
         this.tstep = tStep ? tStep : 0.1;
 
-        if(this.helperExist) {
+        if(this.helperBezierLine) {
             let pts = [];
             pts.push(this.p0); pts.push(this.p1); pts.push(this.p2);
             this.makeBezierSourceTrack(pts);
@@ -780,11 +801,11 @@ class Point3Bezier extends ManualUpdate
         }
     }
 
-    update(time, delta)
+    onUpdate(time, delta)
     {
         if(this.t > 1) {
             console.log('> Point3Bezier:dead-self');
-            this.stop(true);
+            this.stopManualUPdate(true);
             return false;
         }
 
@@ -812,6 +833,7 @@ class Point3Bezier extends ManualUpdate
 }
 Object.assign(Point3Bezier.prototype, BezierLineTrackHelp);
 
+/** point4_bezier_1() 써서 곡선 표현 */
 class Point4Bezier1 extends ManualUpdate
 {
     /** @type {XY} */
@@ -863,27 +885,36 @@ class Point4Bezier1 extends ManualUpdate
         this.p3.set(x4, y4);
         this.t = 0;
         this.tstep = tStep ? tStep : 0.1;
+
+        if(this.helperBezierLine) {
+            let pts = [];
+            pts.push(this.p0); pts.push(this.p1); pts.push(this.p2); pts.push(this.p3);
+            this.makeBezierSourceTrack(pts);
+            this.makeBezierTrack(pts, point4_bezier_2, this.tstep);
+        }
     }
 
-    update(time, delta) {
+    onUpdate(time, delta)
+    {
         if(this.t > 1) {
             console.log('> Point3Bezier:dead-self');
-            this.stop(true);
+            this.stopManualUPdate(true);
             return false;
         }
 
         if(this._started) {
             point4_bezier_1(this.p0, this.p1, this.p2, this.p3, this.t, this.pt_ing);
-            this.realWork(time, delta);
+            this.outsideWork(time, delta);
             this.t += this.tstep;
         }
         return true;
     }
 
-    realWork(time, delta) {
-        this.updateExternalCallback(time, delta);
+    outsideWork(time, delta) {
+        this.updateExternalCallback && this.updateExternalCallback(time, delta);
     }
 }
+Object.assign(Point4Bezier1.prototype, BezierLineTrackHelp);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1047,6 +1078,11 @@ export class CurveTestScene extends Phaser.Scene
     /** @type {} */
     _imagePool = null;
 
+    /** @type {Phaser.GameObjects.Image} */
+    clickBox1 = null;
+    /** @type {Phaser.GameObjects.Image} */
+    imgRingGlow2 = null;
+
     constructor()
     {
         super('CurveTestScene');
@@ -1061,6 +1097,7 @@ export class CurveTestScene extends Phaser.Scene
     {
         this.load.image('click_box', '/assets/16x16.png');
         this.load.image('missile_a', '/assets/missile_a.png');
+        this.load.image('ring_glow_02', '/assets/ring_glow_02.png');
     }
 
     create()
@@ -1080,6 +1117,8 @@ export class CurveTestScene extends Phaser.Scene
         const dotDataArr = [
             { life:2, interactive:true, fillStyle:{color:0xff00ff, size:10, alpha:1.0 }, to:{x:100, y:200 } },
         ];
+
+        this.imgRingGlow2 = this.add.image(0, 0, 'ring_glow_02').setScale(0);
 
         this.clickBox1 = this.add.image(100, 100, 'missile_a').setScale(0.3);
         this.clickBox1.setInteractive();
@@ -1107,23 +1146,26 @@ export class CurveTestScene extends Phaser.Scene
     {
         let x = 5;
         let y = 5;
-        let yStep = 20;
+        let yStep = 30;
 
         this._dbgTxtBtnArr = [];
 
-        let btn = new UI_TextButton(this, "[Lerp 1D]", x, y, null, () => { this.run_lerpTest_1(); });
+        let btn = new UI_TextButton(this, "▶ lerp_1(): 숫자 lerp", x, y, null, () => { this.run_lerpTest_1(); });
         y += yStep;
 
-        btn = new UI_TextButton(this, "[Lerp 2D]", x, y, null, () => { this.run_lerpTest_2(); });
+        btn = new UI_TextButton(this, "▶ lerp_2(): XY좌표 Lerp", x, y, null, () => { this.run_lerpTest_2(); });
         y += yStep;
 
-        btn = new UI_TextButton(this, "[Pt3 Bz 1]", x, y, null, () => { this.run_pt3_bezier_1(); });
+        btn = new UI_TextButton(this, "▶ point3_bezier_1(): lerp사용", x, y, null, () => { this.run_pt3_bezier_1(); });
         y += yStep;
 
-        btn = new UI_TextButton(this, "[Pt3 Bz 2]", x, y, null, () => { this.run_pt3_bezier_2(); });
+        btn = new UI_TextButton(this, "▶ point3_bezier_2(): 수식사용", x, y, null, () => { this.run_pt3_bezier_2(); });
         y += yStep;
 
-        btn = new UI_TextButton(this, "[Pt4 Bz 1]", x, y, null, () => { this.run_pt4_bezier_1(); });
+        btn = new UI_TextButton(this, "▶ point4_bezier_1(): lerp사용", x, y, null, () => { this.run_pt4_bezier_1(0); });
+        y += yStep;
+
+        btn = new UI_TextButton(this, "▶ point4_bezier_2(): lerp사용", x, y, null, () => { this.run_pt4_bezier_1(1); });
         y += yStep;
 
         let new_btn = new UI_Button(this, 0, 0, 200, 100);
@@ -1158,44 +1200,78 @@ export class CurveTestScene extends Phaser.Scene
     /** @param {Phaser.Input.Pointer} pointer */
     onPointerUp(pointer)
     {
-        let lbtn_up = pointer.leftButtonReleased();
-        console.log('PT:' + vec2_2_str(pointer));
+        //let lbtn_up = pointer.leftButtonReleased();
+        //console.log('PT:' + vec2_2_str(pointer));
+        this.playClickFx(pointer.x, pointer.y);
+    }
+
+    playClickFx(x, y) {
+        let on_start = function(tween, targets, x, y) {
+            //console.log(arguments);
+            targets[0].setScale(0.2);
+            targets[0].setVisible(true);
+            targets[0].clearAlpha();
+            targets[0].setPosition(x, y);
+        };
+        let on_complete = (tween, targets) => {
+            targets[0].setVisible(false);
+        };
+        if(this.tweens.isTweening(this.imgRingGlow2)) {
+            this._clickTween && this._clickTween.stop();
+        }
+        {
+            this._clickTween = this.tweens.add({
+                targets:this.imgRingGlow2,
+                scale:1,
+                duration: 400,
+                alpha:0,
+                ease:'Sine.easeOut',
+                onStart: on_start,
+                onStartParams: [x, y],
+                onComplete: on_complete
+            });
+        }
     }
 
 
-    run_lerpTest_1() {
+
+    run_lerpTest_1()
+    {
         let lerp_1 = new Lerp1D();
         lerp_1.setParam(100, -50);
         this._updateArr.add(lerp_1);
     }
-    run_lerpTest_2() {
+    run_lerpTest_2()
+    {
         let lerp_2 = new Lerp2D();
-        if(lerp_2.helperExist) { lerp_2.setPool(this._graphicPool, this._imagePool); }
+        if(lerp_2.helperBezierLine) { lerp_2.setPool(this._graphicPool, this._imagePool); }
         lerp_2.setParam(100, 20, 400, 400, 0.05);
-        lerp_2.setWorkCallback((time, delta) => {
+        lerp_2.setUpdateCallback((time, delta) => {
             this.clickBox1.x = lerp_2.get_x();
             this.clickBox1.y = lerp_2.get_y();
         });
         this._updateArr.add(lerp_2);
     }
-    run_pt3_bezier_1() {
+    run_pt3_bezier_1()
+    {
         let pt3bz = new Point3Bezier();
-        if(pt3bz.helperExist) { pt3bz.setPool(this._graphicPool, this._imagePool); }
+        if(pt3bz.helperBezierLine) { pt3bz.setPool(this._graphicPool, this._imagePool); }
         pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
-        pt3bz.setWorkCallback((time, delta) => {
+        pt3bz.setUpdateCallback((time, delta) => {
             this.clickBox1.x = pt3bz.get_x();
             this.clickBox1.y = pt3bz.get_y();
         });
         this._updateArr.add(pt3bz);
     }
-    run_pt3_bezier_2() {
+    run_pt3_bezier_2()
+    {
         let type = 1;
         if(type === 0)
         {
             let pt3bz = new Point3Bezier();
             pt3bz.setParam(60, 535, 330, 215, 616, 535, 0.05);
             pt3bz.calcType = 2;
-            pt3bz.setWorkCallback((time, delta) => {
+            pt3bz.setUpdateCallback((time, delta) => {
                 this.clickBox1.x = pt3bz.get_x();
                 this.clickBox1.y = pt3bz.get_y();
             });
@@ -1204,23 +1280,25 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt3bz = new NPointsBezier(3, point3_bezier_3);
-            if(pt3bz.helperExist) { pt3bz.setPool(this._graphicPool, this._imagePool); }
+            if(pt3bz.helperBezierLine) { pt3bz.setPool(this._graphicPool, this._imagePool); }
             pt3bz.setStep(0.05);
             pt3bz.setPoints(60, 535, 330, 215, 616, 535);
-            pt3bz.setWorkCallback((time, delta) => {
+            pt3bz.setUpdateCallback((time, delta) => {
                 this.clickBox1.x = pt3bz.get_x();
                 this.clickBox1.y = pt3bz.get_y();
             });
             this._updateArr.add(pt3bz);
         }
     }
-    run_pt4_bezier_1() {
-        let type = 1;
+    run_pt4_bezier_1(runType = 1)
+    {
+        let type = runType;
         if(type === 0)
         {
             let pt4bz = new Point4Bezier1();
+            if(pt4bz.helperBezierLine) { pt4bz.setPool(this._graphicPool, this._imagePool); }
             pt4bz.setParam(69, 676, 165, 460, 482, 455, 570, 676, 0.05);
-            pt4bz.setWorkCallback((time, delta) => {
+            pt4bz.setUpdateCallback((time, delta) => {
                 this.clickBox1.x = pt4bz.get_x();
                 this.clickBox1.y = pt4bz.get_y();
             });
@@ -1229,11 +1307,11 @@ export class CurveTestScene extends Phaser.Scene
         else if(type === 1)
         {
             let pt4bz = new NPointsBezier(4, point4_bezier_2);
-            if(pt4bz.helperExist) { pt4bz.setPool(this._graphicPool, this._imagePool); }
+            if(pt4bz.helperBezierLine) { pt4bz.setPool(this._graphicPool, this._imagePool); }
             pt4bz.setStep(0.05);
             //pt4bz.setPoints(69, 676, 165, 460, 482, 455, 570, 676);
             pt4bz.setPoints(152, 777, 137, 485, 425, 247, 715, 273);
-            pt4bz.setWorkCallback((time, delta) => {
+            pt4bz.setUpdateCallback((time, delta) => {
                 this.clickBox1.x = pt4bz.get_x();
                 this.clickBox1.y = pt4bz.get_y();
             });

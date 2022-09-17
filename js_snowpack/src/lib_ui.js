@@ -5,12 +5,18 @@ import Phaser from 'phaser'
 
 export class UI_TextButton
 {
+    /** @type {Phaser.Scene} */
+    _scene = null;
     /** @type {Phaser.GameObjects.Text} */
     _text = null;
     /** @type {Phaser.GameObjects.Text} */
     _hiddenText = null;
     /** @type {() => void} */
     _onClick = null;
+    /** @type {Phaser.Scene.tween} */
+    _clickTween = null;
+    /** @type {Phaser.GameObjects.Container} */
+    _container = null;
 
     /**
      * @param {Phaser.Scene} scene
@@ -21,7 +27,7 @@ export class UI_TextButton
      * @param {function} onClickResponse
      */
     constructor(scene, text, x, y, style, onClickResponse) {
-        this.init(scene, text, x, y, style, onClickResponse);
+        this.create(scene, text, x, y, style, onClickResponse);
     }
 
     /**
@@ -32,38 +38,69 @@ export class UI_TextButton
      * @param {JSON} style
      * @param {function} onClickResponse
      */
-    init(scene, text, x, y, style, onClickResponse)
+    create(scene, text, x, y, style, onClickResponse)
     {
+        this._scene = scene;
+
         x = x ? x : 0;
         y = y ? y : 0;
-        style = style ? style : { color: '#00ff00' };
+        style = style ? style : { color:'#ffffff', fontSize:'18px', fontFamily:'"Cascadia Code", D2Coding, "Lucida Sans Typewriter", Menlo, "Roboto Mono Medium", "DejaVu Sans Mono"' };
 
-        if(onClickResponse)
-        {
+        if(onClickResponse) {
             this._onClick = onClickResponse;
         }
 
-        this._text = scene.add.text(x, y, text);
-        this._text.setInteractive();
+        this._container = scene.add.container(x, y);
 
-        this._text.on('pointerdown', () =>
-        {
-            console.log('on click');
-            this._onClick && this._onClick();
+        this._text = scene.add.text(0, 0, text);
+        this._text.setInteractive();
+        this._text.setStyle(style);
+
+        this._text.on('pointerdown', () => { //console.log('on click');
+            if(this._onClick) {
+                this.playClickFx();
+                this._onClick();
+            }
+            else {
+            }
         });
 
-        this._hiddenText = scene.add.text(x, y, text);
-        this._hiddenText.active = false;
+        let style2 = { color:'#aaa', fontSize:'18px', fontFamily:'"Cascadia Code", D2Coding, "Lucida Sans Typewriter", Menlo, "Roboto Mono Medium", "DejaVu Sans Mono"' };
+        this._hiddenText = scene.add.text(0, 0, text);
+        this._hiddenText.setStyle(style2);
+        this._hiddenText.setVisible(false);
+        this._hiddenText.setOrigin(0.5, 0.5);
+        let center_pos = this._text.getCenter();
+        this._hiddenText.setPosition(center_pos.x, center_pos.y);//(this._text.width / 2, this._text.height / 2);
+
+        this._container.add(this._text);
+        this._container.add(this._hiddenText);
     }
 
     setPosition(x, y) {
-        this._text.setPosition(x, y);
-        this._hiddenText.setPosition(x, y);
+        this._container.setPosition(x, y);
     }
 
     /** @param {Function} onClickResponse */
     setClickCallback(onClickResponse) {
         this._onClick = onClickResponse;
+    }
+
+    playClickFx() {
+        let on_start = (tween, targets) => {
+            targets[0].setScale(1,1);
+            targets[0].setVisible(true);
+            targets[0].clearAlpha();
+        };
+        let on_complete = (tween, targets) => {
+            targets[0].setVisible(false);
+        };
+        this._clickTween = this._scene.tweens.add({
+            targets:this._hiddenText,
+            scaleX:1.5, duration: 200, alpha:0, ease:'Sine.easeOut',
+            onStart: on_start,
+            onComplete: on_complete
+        });
     }
 }
 
