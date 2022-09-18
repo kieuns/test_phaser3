@@ -54,7 +54,10 @@ export class TickPlay
         this._tickPerSec = tickPerSec;
     }
 
-    /** @param {number} expectEndTick (unit:tick) */
+    /**
+     * @param {number} [expectEndTick] (unit:tick)
+     * @param {boolean} [isTime=false]
+     */
     start(expectEndTick, isTime = false)
     {
         expectEndTick = (expectEndTick ? expectEndTick : (12*60));
@@ -126,9 +129,10 @@ export class TickPlay
     }
 
     /**
-     * @param {number} [time] - 예약 시간, 지금에서 얼마 뒤. ms
-     * @param {function} [callback] - 호출 함수
-     * @param {number} [repeatCnt]
+     * @param {number} time - 예약 시간, 지금에서 얼마 뒤. ms
+     * @param {function} callback - 호출 함수
+     * @param {number} [repeatCnt=1]
+     * @param {number} [repeatTimeDur]
      */
     reserveOnTime(time, callback, repeatCnt = 1, repeatTimeDur)
     {

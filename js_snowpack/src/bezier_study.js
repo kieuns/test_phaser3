@@ -17,7 +17,7 @@ export function lerp_1(v1, v2, t)
 * @param {XY} v1
 * @param {XY} v2
 * @param {number} t
-* @param {XY} out
+* @param {XY} [out]
 * @returns 보간결과 out을 그대로 리턴
 */
 export function lerp_2(v1, v2, t, out)
@@ -46,7 +46,7 @@ export function point3_bezier_1(p0, p1, p2, t, out)
 * @param {XY} p1
 * @param {XY} p2
 * @param {number} t
-* @param {XY} out
+* @param {XY} [out]
 */
 export function point3_bezier_2(p0, p1, p2, t, out)
 {
@@ -56,7 +56,13 @@ export function point3_bezier_2(p0, p1, p2, t, out)
     return out;
 }
 
-export function point3_bezier_3(out, t, pts)
+/**
+ * @param {number} t - t (0~1) 사이의 값
+ * @param {XY[]} pts - 좌표값이 있는 XY의 배열
+ * @param {XY} [out] - 최종값
+ * @return {XY}
+ */
+export function point3_bezier_3(t, pts, out)
 {
     out = out ? out : new XY(0, 0);
     out.x = point3_bezier_calc_1(pts[0].x, pts[1].x, pts[2].x, t);
@@ -97,8 +103,12 @@ export function point3_bezier_calc_1(n0, n1, n2, t)
 
 /** lerp_2만 써서, 점 4개짜리 곡선 움직임 찾기
  * @param {XY} p0 - XY 형식의 좌표값. p0 ~ p3
- * @param {XY} out
+ * @param {XY} p1 - XY 형식의 좌표값. p0 ~ p3
+ * @param {XY} p2 - XY 형식의 좌표값. p0 ~ p3
+ * @param {XY} p3 - XY 형식의 좌표값. p0 ~ p3
  * @param {number} t
+ * @param {XY} [out]
+ * @return {XY}
  */
 export function point4_bezier_1(p0, p1, p2, p3, t, out)
 {
@@ -117,11 +127,11 @@ export function point4_bezier_1(p0, p1, p2, p3, t, out)
 }
 
 /**
- * @param {XY} out
  * @param {number} t
  * @param {XY[]} pts - [XY, XY, XY, XY] XY 4개 있는 배열 필요.
+ * @param {XY} [out]
  */
-export function point4_bezier_2(out, t, pts)
+export function point4_bezier_2(t, pts, out)
 {
     out = out ? out : new XY(pts[0].x, pts[0].y);
 
@@ -140,16 +150,15 @@ export function point4_bezier_2(out, t, pts)
 
 // P0( -3t^2 +6t -3 ) + P1( 9t^2 -12t +3 ) + P2( -9t^2 + 6t ) + P3( 3t^2 )
 /** 점4개 베지어에서 1번째 도함수에서 속도를(탄젠트) 구한다.
- * @param {XY} out
  * @param {number} t
  * @param {XY[]} pts - [XY, XY, XY, XY] XY 4개 있는 배열 필요.
  */
-export function point4_bezier_velocity(t, pts)
+export function point4_bezier_velocity_1(t, pts)
 {
     let out = new XY(pts[0].x, pts[0].y);
 
     if(pts.length !== 4) {
-        console.warn('point4_bezier_velocity: need 4 points');
+        console.warn('point4_bezier_velocity_1: need 4 points');
         return
     }
     let p0 = ((-3 * t ** 2) + (6 * t) + (-3));
@@ -160,9 +169,9 @@ export function point4_bezier_velocity(t, pts)
     out.x = (p0 * pts[0].x) + (p1 * pts[1].x) + (p2 * pts[2].x) + (p3 * pts[3].x);
     out.y = (p0 * pts[0].y) + (p1 * pts[1].y) + (p2 * pts[2].y) + (p3 * pts[3].y);
 
-    console.log('point4_bezier_velocity\n: ' + out.toString());
+    //console.log('point4_bezier_velocity_1: ' + out.toString());
 
     let final = p0 + p1 + p2 + p3;
-    console.log.apply(console, ['point4_bezier_velocity\n: all('+final.toFixed(2)+') P0('+p0.toFixed(2)+') + P1('+p1.toFixed(2)+') + P2('+p2.toFixed(2)+') + P3('+p3.toFixed(2)+')']);
+    console.log.apply(console, ['point4_bezier_velocity_1: all('+final.toFixed(2)+') P0('+p0.toFixed(2)+') + P1('+p1.toFixed(2)+') + P2('+p2.toFixed(2)+') + P3('+p3.toFixed(2)+')']);
     return final;
 }

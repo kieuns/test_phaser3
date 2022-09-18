@@ -4,7 +4,7 @@ import Phaser from 'phaser'
 import { TickPlay } from './TickPlay';
 import { vec2_2_str, XY } from './lib_gametype';
 import { UI_Button, UI_TextButton } from './lib_ui';
-import { lerp_1, lerp_2, point3_bezier_1, point3_bezier_2, point3_bezier_3, point3_bezier_calc_1, point4_bezier_1, point4_bezier_2, point4_bezier_velocity }  from './bezier_study';
+import { lerp_1, lerp_2, point3_bezier_1, point3_bezier_2, point3_bezier_3, point3_bezier_calc_1, point4_bezier_1, point4_bezier_2, point4_bezier_velocity_1 }  from './bezier_study';
 
 // 추가문서는, CurveTestScene.md
 
@@ -147,7 +147,7 @@ export class PhaserGraphicObjectPool
         this._tickPlayer = tp;
     }
 
-    /** @param {JSON} jsonData
+    /** @param {JSON|*} jsonData
      * @example
      * const lineDataArrExam = [
      * { life:0.5, fillStyle:{color:0xffffff, size:1, alpha:1.0 }, from:{x:0, y:0}, to:{x:100, y:200 } },
@@ -284,7 +284,7 @@ export class PhaserImageObjectPool
         this._tickPlayer = tp;
     }
 
-     /** @param {JSON} jsonData
+     /** @param {JSON|*} jsonData
       * @returns {Phaser.GameObjects.Image}
       * @example
       * { life:2, texture: 'click_box',
@@ -391,12 +391,15 @@ class ClickLocationGuide
     }
 
     /** @param {Phaser.Input.Pointer} pointer */
-    onPointerUp(pointer)
-    {
-        let lbtn_up = pointer.leftButtonReleased();
-        if(this._mouseDown && lbtn_up) {
-            this.closeMouseInputCapture(pointer.x, pointer.y);
-        }
+    onPointerDown(pointer) {
+    }
+
+    /** @param {Phaser.Input.Pointer} pointer */
+    onPointerUp(pointer) {
+        // let lbtn_up = pointer.leftButtonReleased();
+        // if(this._mouseDown && lbtn_up) {
+        //     this.closeMouseInputCapture(pointer.x, pointer.y);
+        // }
     }
 }
 
@@ -418,7 +421,7 @@ async function startLerp2D_ClickLocationGuide(scene)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/** @type {mixin} BezierLineTrackHelp */
+/** @class */
 let BezierLineTrackHelp =
 {
     /** @type {number} */
@@ -464,14 +467,14 @@ let BezierLineTrackHelp =
 
     /**
      * @param {XY[]} pts
-     * @param {(XY, number, XY[])=>void} bezierCallback
+     * @param {bezierPositionCalcCallback} bezierCallback
      */
     makeBezierTrack(pts, bezierCallback, tstep, lineStyle) {
         let out1 = new XY();
         let out2 = new XY();
         for(let i = 0; i <= 1; i += tstep) {
-            bezierCallback(out1, i, pts);
-            bezierCallback(out2, i+tstep, pts);
+            bezierCallback(i, pts, out1);
+            bezierCallback(i+tstep, pts, out2);
             let line_dat = lineStyle ? lineStyle : { life:this._objectLifeDur, fillStyle:{color:0x51b300, size:1, alpha:1.0}, from:{x:0, y:0}, to:{x:100, y:200 } };;
             line_dat.from.x = out1.x;
             line_dat.from.y = out1.y;
@@ -513,6 +516,14 @@ let BezierLineTrackHelp =
     helperBezierLine() { return true; }
 }
 
+/**
+ * @callback bezierPositionCalcCallback
+ * @param {number} t - t (0~1) 사이의 값
+ * @param {XY[]} pts - 좌표값이 있는 XY의 배열
+ * @param {XY} [out] - 최종값
+ * @return {XY}
+ */
+
 /** N차 베지어 곡선을 처리할 클래스. 베지어 함수와 커브를 그릴 좌표는 지정해줘야한다.
  * @example
  * let pt4bz = new NPointsBezier( (좌표 개수) 4,  (베지어 콜백 함수) point4_bezier_2);
@@ -546,7 +557,7 @@ class NPointsBezier extends ManualUpdate
 
     /** xys 배열 변수를 받아서 베지어 계산을 하는 함수를 호출한다.
      * xys의 배열개수와 함수의 내용이 맞아아 문제가 없다.
-     * @type {(XY, number, XY[])=>void} */
+     * @type {bezierPositionCalcCallback} */
      bezierPositionCalc = null;
 
     /** @param {number} pointNum */
@@ -607,7 +618,7 @@ class NPointsBezier extends ManualUpdate
         }
 
         if(this._started) {
-            this.bezierPositionCalc(this.pt_ing, this.t, this.points);
+            this.bezierPositionCalc(this.t, this.points, this.pt_ing);
             this.updateExternalCallback(time, delta);
             this.t += this.tstep;
         }
@@ -874,7 +885,7 @@ class Point4Bezier1 extends ManualUpdate
     get_x() { return this.pt_ing.x; }
     get_y() { return this.pt_ing.y; }
 
-    /** @param {(time:number, delta:number, t:number) => void} updateAnother */
+    /** @param {(time:number, delta:number, t:number) => void} updateAnotherCallback */
     setOnUpdateWithTCallback(updateAnotherCallback) {
         this._updateWithT = updateAnotherCallback;
     }
@@ -942,7 +953,7 @@ export class CurveTestScene extends Phaser.Scene
     /** @type {TickPlay} */
     _tickPlay = null;
 
-    /** @type {UI_TextButton} */
+    /** @type {UI_TextButton[]} */
     _dbgTxtBtnArr = null;
 
     /** @type {ManualUpdateArray} */
@@ -1048,7 +1059,7 @@ export class CurveTestScene extends Phaser.Scene
         btn = new UI_TextButton(this, "▶ point4_bezier_2(): lerp사용", x, y, null, () => { this.run_pt4_bezier_1(1); });
         y += yStep;
 
-        btn = new UI_TextButton(this, "▶ point4_bezier_velocity()", x, y, null, () => { this.run_pt4_bezier_velocity_1(0); });
+        btn = new UI_TextButton(this, "▶ point4_bezier_velocity_1()", x, y, null, () => { this.run_pt4_bezier_velocity_1(0); });
         y += yStep;
 
         // let new_btn = new UI_Button(this, 0, 0, 200, 100);
@@ -1215,7 +1226,7 @@ export class CurveTestScene extends Phaser.Scene
                 this.missile_a.y = pt4bz.get_y();
             });
             pt4bz.setOnUpdateWithTCallback((time, delta, t) => {
-                let vec = point4_bezier_velocity(t, pt4bz.getPoints());
+                let vec = point4_bezier_velocity_1(t, pt4bz.getPoints());
                 //console.log.apply(console, ['setUpdateWithT(', t.toFixed(2), '):', vec.toFixed(2)]);
             });
             this._updateArr.add(pt4bz);
