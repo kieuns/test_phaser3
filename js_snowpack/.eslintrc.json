@@ -1,3 +1,4 @@
+// 이거 동작하는거냐?
 {
   "rules": {
     "no-unused-vars":"error",

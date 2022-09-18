@@ -169,7 +169,7 @@ export class PhaserGraphicObjectPool
     addLines(jsonData) {
         jsonData.forEach(elem => this.addLine(elem));
     }
-    /** @param {JSON} jsonData
+    /** @param {JSON|*} jsonData
      * @example
      * const dotDataArr = [
      * { life:2, fillStyle:{color:0xff00ff, size:10, alpha:1.0 }, to:{x:100, y:200 } }, ];
