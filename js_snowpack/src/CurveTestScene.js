@@ -306,7 +306,10 @@ export class PhaserImageObjectPool
                 //console.log.apply(console, [this]);
                 jsonData.xy.x = this.x;
                 jsonData.xy.y = this.y;
-                console.log.apply(console, ['xy: ', jsonData.xy]);
+                //console.log.apply(console, ['xy: ', jsonData.xy]);
+                if(jsonData.dragCallback) {
+                    jsonData.dragCallback(this.x, this.y);
+                }
             });
 
         }
@@ -324,7 +327,7 @@ export class PhaserImageObjectPool
         return dot_img;
     }
 
-    /** @return {JsonObject} */
+    /** @return {JSON} */
     getDot()
     {
         if(this._imgOutCount >= this._imgJsonArr.length) {
@@ -425,13 +428,17 @@ async function startLerp2D_ClickLocationGuide(scene)
 let BezierLineTrackHelp =
 {
     /** @type {number} */
-    _objectLifeDur: 4,
+    _objectLifeDur: 5,
 
     /** @type {PhaserGraphicObjectPool} */
     _graphicPool: null,
 
     /** @type {PhaserImageObjectPool} */
     _imagePool: null,
+
+    _guideLineJsonData: null,
+
+    _bezierJsonData: null,
 
     /** @param {PhaserGraphicObjectPool} grpPool */
     setGraphicPool(grpPool) {
@@ -452,16 +459,29 @@ let BezierLineTrackHelp =
         this.setImagePool(imgPool);
     },
 
+
     /** @param {XY[]} pts */
     makeBezierSourceTrack(pts) {
-        let lineData = [];
+        console.log.apply(console, ['pts:', pts]);
+        this._guideLineJsonData = [];
         for(let i = 0; i < pts.length-1; i++) {
             let param = { life:this._objectLifeDur, fillStyle:{color:0xffffff, size:1, alpha:1.0}, from:{x:0, y:0}, to:{x:100, y:200 } };
             param.from.x = pts[i].x;
             param.from.y = pts[i].y;
             param.to.x = pts[i+1].x;
             param.to.y = pts[i+1].y;
+            this._guideLineJsonData.push(param);
             this._graphicPool.addLine(param);
+        }
+    },
+
+    /** @param {XY[]} pts */
+    drawBezierSourceTrack(pts) {
+        for(let i = 0; i < pts.length-1; i++) {
+            this._guideLineJsonData[i].from.x = pts[i].x;
+            this._guideLineJsonData[i].from.y = pts[i].y;
+            this._guideLineJsonData[i].to.x = pts[i+1].x;
+            this._guideLineJsonData[i].to.y = pts[i+1].y;
         }
     },
 
@@ -472,6 +492,7 @@ let BezierLineTrackHelp =
     makeBezierTrack(pts, bezierCallback, tstep, lineStyle) {
         let out1 = new XY();
         let out2 = new XY();
+        this._bezierJsonData = [];
         for(let i = 0; i <= 1; i += tstep) {
             bezierCallback(i, pts, out1);
             bezierCallback(i+tstep, pts, out2);
@@ -480,9 +501,30 @@ let BezierLineTrackHelp =
             line_dat.from.y = out1.y;
             line_dat.to.x = out2.x;
             line_dat.to.y = out2.y;
+            this._bezierJsonData.push(line_dat);
             this._graphicPool.addLine(line_dat);
         }
     },
+
+    /**
+     * @param {XY[]} pts
+     * @param {bezierPositionCalcCallback} bezierCallback
+     */
+    drawBezierTrack(pts, bezierCallback, tstep, lineStyle) {
+        let out1 = new XY();
+        let out2 = new XY();
+        let t = 0;
+        for(let i = 0; i < this._bezierJsonData.length; i++) {
+            bezierCallback(t, pts, out1);
+            bezierCallback(t+tstep, pts, out2);
+            this._bezierJsonData[i].from.x = out1.x;
+            this._bezierJsonData[i].from.y = out1.y;
+            this._bezierJsonData[i].to.x = out2.x;
+            this._bezierJsonData[i].to.y = out2.y;
+            t += tstep;
+        }
+    },
+
 
     /**
      * @param {XY[]} pts
@@ -495,6 +537,12 @@ let BezierLineTrackHelp =
             param.to.y = pts[i].y;
             param.xy = pts[i];
             param.draggable = true;
+            param.dragCallback = (x, y) => {
+                //console.log.apply(console, ['x: ', x, ' y: ', y]);
+                if(this.onDotMoved) {
+                    this.onDotMoved(i, x, y);
+                }
+            };
             //console.log.apply(console, [param]);
             let added_point = this._imagePool.addDot(param);
         }
@@ -587,7 +635,7 @@ class NPointsBezier extends ManualUpdate
 
     // 나머지 매개 변수 : https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Functions/rest_parameters
     /**
-     * @param {XY[]} xys - (x1, y1, x2, y2, x3, y3, ...) (x,y 순서의 좌표값)
+     * @param {number[]} xys - (x1, y1, x2, y2, x3, y3, ...) (x,y 순서의 좌표값)
      */
     setPoints(...xys) {
         this.pt_ing.set(xys[0], xys[1]);
@@ -610,7 +658,23 @@ class NPointsBezier extends ManualUpdate
         }
     }
 
-    onUpdate(time, delta) {
+    /**
+     * @param {number} idx - points 배열의 인덱스
+     * @param {number} x
+     * @param {number} y
+     */
+    onDotMoved(idx, x, y) {
+        this.points[idx].x = x;
+        this.points[idx].y = y;
+        console.log.apply(console, ['idx:' + idx + ' pt: ' + this.points]);
+        if(this.helperBezierLine) {
+            this.drawBezierSourceTrack(this.points);
+            this.drawBezierTrack(this.points, this.bezierPositionCalc, this.tstep);
+        }
+    }
+
+    onUpdate(time, delta)
+    {
         if(this.t >= (1+this.tstep)) {
             console.log('> NPointsBezier:dead-self');
             this.stopManualUPdate(true);
