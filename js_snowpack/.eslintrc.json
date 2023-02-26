@@ -1,8 +1,0 @@
-// 이거 동작하는거냐?
-{
-  "rules": {
-    "no-unused-vars":"error",
-    "no-unreachable": "error",
-    "no-use-before-define":"error"
-  }
-}
