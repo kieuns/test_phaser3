@@ -16,8 +16,13 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "allowJs": true,
-    //"checkJs": true,
+    "checkJs": true,
+    "forceConsistentCasingInFileNames":true,
   },
-  "include": ["src"],
-  "exclude": ["node_modules"],
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
 }

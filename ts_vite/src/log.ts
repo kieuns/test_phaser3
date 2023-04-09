@@ -1,6 +1,6 @@
-
-
-/** 로그에 대한 기능을 모아두는 */
+/**
+ * 로그에 대한 기능을 모아두는
+ */
 export class LogUtil
 {
     private LogLevel = 5;
